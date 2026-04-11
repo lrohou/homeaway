@@ -1,0 +1,59 @@
+{
+  "name": "Expense",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "description": "ID du voyage associ\u00e9"
+    },
+    "title": {
+      "type": "string",
+      "description": "Description de la d\u00e9pense"
+    },
+    "amount": {
+      "type": "number",
+      "description": "Montant"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR"
+    },
+    "paid_by": {
+      "type": "string",
+      "description": "Email de celui qui a pay\u00e9"
+    },
+    "split_between": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des personnes concern\u00e9es"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "accommodation",
+        "transport",
+        "food",
+        "activity",
+        "shopping",
+        "other"
+      ],
+      "description": "Cat\u00e9gorie"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "step_id": {
+      "type": "string",
+      "description": "ID de l'\u00e9tape associ\u00e9e"
+    }
+  },
+  "required": [
+    "trip_id",
+    "title",
+    "amount",
+    "paid_by"
+  ]
+}

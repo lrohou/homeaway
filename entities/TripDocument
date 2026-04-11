@@ -1,0 +1,43 @@
+{
+  "name": "TripDocument",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "description": "ID du voyage associ\u00e9"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre du document"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "ticket",
+        "reservation",
+        "passport",
+        "invoice",
+        "insurance",
+        "other"
+      ],
+      "description": "Type de document"
+    },
+    "file_url": {
+      "type": "string",
+      "description": "URL du fichier"
+    },
+    "step_id": {
+      "type": "string",
+      "description": "ID de l'\u00e9tape associ\u00e9e (optionnel)"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes"
+    }
+  },
+  "required": [
+    "trip_id",
+    "title",
+    "file_url"
+  ]
+}

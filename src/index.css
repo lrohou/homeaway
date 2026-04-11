@@ -1,0 +1,121 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-sans: 'DM Sans', sans-serif;
+    --font-display: 'Playfair Display', serif;
+
+    --background: 35 30% 98%;
+    --foreground: 220 30% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 30% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 30% 12%;
+    --primary: 220 60% 22%;
+    --primary-foreground: 35 30% 98%;
+    --secondary: 35 25% 93%;
+    --secondary-foreground: 220 30% 12%;
+    --muted: 35 15% 95%;
+    --muted-foreground: 220 10% 46%;
+    --accent: 12 80% 62%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 15% 89%;
+    --input: 35 15% 89%;
+    --ring: 220 60% 22%;
+    --chart-1: 12 80% 62%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 220 60% 22%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 35 25% 60%;
+    --radius: 0.75rem;
+    --sidebar-background: 220 60% 22%;
+    --sidebar-foreground: 35 30% 95%;
+    --sidebar-primary: 12 80% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 50% 28%;
+    --sidebar-accent-foreground: 35 30% 95%;
+    --sidebar-border: 220 45% 30%;
+    --sidebar-ring: 12 80% 62%;
+  }
+
+  .dark {
+    --background: 220 30% 8%;
+    --foreground: 35 30% 95%;
+    --card: 220 25% 12%;
+    --card-foreground: 35 30% 95%;
+    --popover: 220 25% 12%;
+    --popover-foreground: 35 30% 95%;
+    --primary: 35 30% 92%;
+    --primary-foreground: 220 30% 8%;
+    --secondary: 220 20% 18%;
+    --secondary-foreground: 35 30% 95%;
+    --muted: 220 20% 16%;
+    --muted-foreground: 35 15% 55%;
+    --accent: 12 80% 62%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 220 20% 20%;
+    --input: 220 20% 20%;
+    --ring: 35 30% 92%;
+    --chart-1: 12 80% 62%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 35 25% 60%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 220 30% 6%;
+    --sidebar-foreground: 35 30% 95%;
+    --sidebar-primary: 12 80% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 25% 14%;
+    --sidebar-accent-foreground: 35 30% 95%;
+    --sidebar-border: 220 25% 14%;
+    --sidebar-ring: 12 80% 62%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased selection:bg-accent/30 selection:text-accent-foreground;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Mobile optimizations */
+  @media (max-width: 640px) {
+    .h-16 { height: 3.5rem; } /* Slightly shorter header on mobile */
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .py-6 { padding-top: 1rem; padding-bottom: 1rem; }
+  }
+  
+  .glass {
+    @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
+  }
+  
+  .glass-dark {
+    @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl;
+  }
+}
+
+.container {
+  @apply px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl;
+}

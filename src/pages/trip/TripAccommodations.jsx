@@ -1,0 +1,250 @@
+import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '@/api/apiClient';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, MapPin, DollarSign, CalendarDays, Trash2 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
+
+export default function TripAccommodations() {
+  const { tripId } = useParams();
+  const queryClient = useQueryClient();
+  const [isOpen, setIsOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    location: '',
+    checkIn: '',
+    checkOut: '',
+    price: '',
+    currency: 'EUR',
+    bookingReference: '',
+    latitude: '',
+    longitude: ''
+  });
+
+  const { data: trip } = useQuery({
+    queryKey: ['trip', tripId],
+    queryFn: () => api.trips.get(tripId),
+  });
+
+  const { data: accommodations = [] } = useQuery({
+    queryKey: ['accommodations', tripId],
+    queryFn: () => api.accommodations.list(tripId),
+  });
+
+  const createMutation = useMutation({
+    mutationFn: (data) => api.accommodations.create(tripId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['accommodations', tripId] });
+      setIsOpen(false);
+      setFormData({
+        name: '',
+        location: '',
+        checkIn: '',
+        checkOut: '',
+        price: '',
+        currency: 'EUR',
+        bookingReference: '',
+        latitude: '',
+        longitude: ''
+      });
+    }
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (id) => api.accommodations.delete(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['accommodations', tripId] }),
+  });
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    createMutation.mutate({
+      ...formData,
+      price: parseFloat(formData.price),
+      latitude: parseFloat(formData.latitude),
+      longitude: parseFloat(formData.longitude)
+    });
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Accommodations</h1>
+          <p className="text-gray-600 mt-1">Manage your trip accommodations</p>
+        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          <DialogTrigger asChild>
+            <Button className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Accommodation
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Add New Accommodation</DialogTitle>
+              <DialogDescription>Add a new lodging to your trip</DialogDescription>
+            </DialogHeader>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name">Hotel/Property Name</Label>
+                <Input
+                  id="name"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Hotel name"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="location">Location</Label>
+                <Input
+                  id="location"
+                  value={formData.location}
+                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                  placeholder="Address"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="checkIn">Check-in Date</Label>
+                  <Input
+                    id="checkIn"
+                    type="date"
+                    value={formData.checkIn}
+                    onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
+                    min={trip?.start_date}
+                    max={trip?.end_date}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="checkOut">Check-out Date</Label>
+                  <Input
+                    id="checkOut"
+                    type="date"
+                    value={formData.checkOut}
+                    onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
+                    min={trip?.start_date}
+                    max={trip?.end_date}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="price">Price</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  value={formData.price}
+                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="bookingRef">Booking Reference</Label>
+                <Input
+                  id="bookingRef"
+                  value={formData.bookingReference}
+                  onChange={(e) => setFormData({ ...formData, bookingReference: e.target.value })}
+                  placeholder="Booking reference"
+                />
+              </div>
+              <Button type="submit" className="w-full" disabled={createMutation.isPending}>
+                Add Accommodation
+              </Button>
+            </form>
+          </DialogContent>
+        </Dialog>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {accommodations.map((acc) => (
+          <Card key={acc.id} className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-3xl bg-white/70 backdrop-blur-sm">
+            <div className="h-3 bg-gradient-to-r from-emerald-400 to-teal-500" />
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] tracking-wider">
+                      Logement
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-xl font-display font-bold leading-tight">{acc.name}</CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 text-slate-500">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="truncate max-w-[200px]">{acc.location}</span>
+                  </CardDescription>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full hover:bg-rose-50 hover:text-rose-500"
+                    onClick={() => deleteMutation.mutate(acc.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 pb-6">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Arrivée</p>
+                  <p className="text-sm font-semibold">{acc.checkIn}</p>
+                </div>
+                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Départ</p>
+                  <p className="text-sm font-semibold">{acc.checkOut}</p>
+                </div>
+              </div>
+              
+              <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Budget total</span>
+                  <span className="text-xl font-display font-bold text-slate-900">{acc.price} {acc.currency}</span>
+                </div>
+                {acc.bookingReference && (
+                  <div className="text-right">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter block leading-none">Référence</span>
+                    <span className="text-sm font-mono text-slate-600">{acc.bookingReference}</span>
+                  </div>
+                )}
+              </div>
+              
+              <Button 
+                variant="outline" 
+                className="w-full rounded-2xl border-slate-200 text-slate-600 hover:text-blue-600 hover:border-blue-200 hover:bg-blue-50 transition-all"
+                asChild
+              >
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(acc.location)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="gap-2"
+                >
+                  <MapPin className="w-4 h-4" />
+                  Voir sur la carte
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {accommodations.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500">No accommodations added yet</p>
+        </div>
+      )}
+    </div>
+  );
+}

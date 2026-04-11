@@ -1,0 +1,70 @@
+{
+  "name": "Trip",
+  "type": "object",
+  "properties": {
+    "title": {
+      "type": "string",
+      "description": "Nom du voyage"
+    },
+    "description": {
+      "type": "string",
+      "description": "Description du voyage"
+    },
+    "cover_image": {
+      "type": "string",
+      "description": "URL de l'image de couverture"
+    },
+    "start_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de d\u00e9but"
+    },
+    "end_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de fin"
+    },
+    "destinations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Liste des destinations"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "upcoming",
+        "ongoing",
+        "past"
+      ],
+      "default": "upcoming",
+      "description": "Statut du voyage"
+    },
+    "budget": {
+      "type": "number",
+      "description": "Budget total pr\u00e9vu"
+    },
+    "currency": {
+      "type": "string",
+      "default": "EUR",
+      "description": "Devise"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Emails des membres invit\u00e9s"
+    },
+    "owner_email": {
+      "type": "string",
+      "description": "Email du cr\u00e9ateur"
+    }
+  },
+  "required": [
+    "title",
+    "start_date",
+    "end_date"
+  ]
+}

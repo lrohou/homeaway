@@ -1,0 +1,78 @@
+{
+  "name": "TripStep",
+  "type": "object",
+  "properties": {
+    "trip_id": {
+      "type": "string",
+      "description": "ID du voyage associ\u00e9"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titre de l'\u00e9tape"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "flight",
+        "train",
+        "hotel",
+        "restaurant",
+        "activity",
+        "transport",
+        "other"
+      ],
+      "description": "Type d'\u00e9tape"
+    },
+    "date": {
+      "type": "string",
+      "format": "date",
+      "description": "Date de l'\u00e9tape"
+    },
+    "start_time": {
+      "type": "string",
+      "description": "Heure de d\u00e9but (HH:MM)"
+    },
+    "end_time": {
+      "type": "string",
+      "description": "Heure de fin (HH:MM)"
+    },
+    "location": {
+      "type": "string",
+      "description": "Lieu / Adresse"
+    },
+    "latitude": {
+      "type": "number",
+      "description": "Latitude"
+    },
+    "longitude": {
+      "type": "number",
+      "description": "Longitude"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Notes suppl\u00e9mentaires"
+    },
+    "booking_reference": {
+      "type": "string",
+      "description": "R\u00e9f\u00e9rence de r\u00e9servation"
+    },
+    "price": {
+      "type": "number",
+      "description": "Prix"
+    },
+    "confirmation_url": {
+      "type": "string",
+      "description": "Lien de confirmation"
+    },
+    "order_index": {
+      "type": "number",
+      "description": "Ordre dans la journ\u00e9e"
+    }
+  },
+  "required": [
+    "trip_id",
+    "title",
+    "type",
+    "date"
+  ]
+}
