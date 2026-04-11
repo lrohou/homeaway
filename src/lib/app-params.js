@@ -44,7 +44,7 @@ const getAppParams = () => {
 		token: getAppParamValue("access_token", { removeFromUrl: true }),
 		fromUrl: getAppParamValue("from_url", { defaultValue: window.location.href }),
 		functionsVersion: getAppParamValue("functions_version", { defaultValue: '1.0.0' }),
-		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: 'http://localhost:5173' }),
+		appBaseUrl: getAppParamValue("app_base_url", { defaultValue: 'http://homeaway-rust.vercel.app' }),
 	}
 }
 
