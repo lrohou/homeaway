@@ -18,7 +18,7 @@ const PORT = process.env.PORT || 8000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://homeaway-rust.vercel.app',
+  origin: process.env.FRONTEND_URL || 'https://homeaway-rust.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
