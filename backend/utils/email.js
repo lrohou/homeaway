@@ -1,38 +1,76 @@
 import nodemailer from 'nodemailer';
 
-export const sendEmail = async (to, subject, text, html) => {
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.SMTP_USER || 'mock_user',
-      pass: process.env.SMTP_PASS || 'mock_pass'
-    }
-  });
+/**
+ * Creates a nodemailer transporter based on environment variables
+ */
+const createTransporter = () => {
+  const user = process.env.SMTP_USER;
+  const pass = process.env.SMTP_PASS;
+  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
+  const port = parseInt(process.env.SMTP_PORT || '587');
 
-  const passLength = process.env.SMTP_PASS ? process.env.SMTP_PASS.length : 0;
-  console.log(`📧 Tentative d'envoi d'email via ${process.env.SMTP_HOST || 'Service Gmail'} avec l'utilisateur ${process.env.SMTP_USER || 'mock_user'} (Pass: ${passLength} chars)`);
+  if (!user || user === 'mock_user' || !pass) {
+    return null;
+  }
+
+  // Configuration for the transporter
+  const config = {
+    host,
+    port,
+    secure: port === 465, // true for 465, false for 587 (STARTTLS)
+    auth: {
+      user,
+      pass
+    }
+  };
+
+  // If using Gmail service specifically, it can sometimes be more reliable
+  if (host.includes('gmail.com') && !process.env.SMTP_FORCE_HOST) {
+    return nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user, pass }
+    });
+  }
+
+  return nodemailer.createTransport(config);
+};
+
+export const sendEmail = async (to, subject, text, html) => {
+  const transporter = createTransporter();
+
+  const user = process.env.SMTP_USER || 'mock_user';
+  console.log(`📧 Attempting to send email to ${to} via ${process.env.SMTP_HOST || 'Gmail'} (User: ${user})`);
+
   try {
-    // If no real credentials, just log to console
-    if (!process.env.SMTP_USER || process.env.SMTP_USER === 'mock_user') {
-      console.log('--- MOCK EMAIL SENT ---');
+    if (!transporter) {
+      console.log('--- MOCK EMAIL (No real credentials found) ---');
       console.log(`To: ${to}`);
       console.log(`Subject: ${subject}`);
-      console.log(`Body: ${text}`);
-      console.log('-----------------------');
+      console.log('-------------------------------------------');
       return true;
     }
 
     const info = await transporter.sendMail({
-      from: `"HomeAway" <${process.env.SMTP_USER}>`,
+      from: `"HomeAway" <${user}>`,
       to,
       subject,
       text,
       html
     });
-    console.log('Message sent: %s', info.messageId);
+
+    console.log('✅ Email sent successfully: %s', info.messageId);
     return true;
   } catch (error) {
-    console.error('Send email error:', error);
+    console.error('❌ Failed to send email:');
+    console.error(error);
+    
+    // Provide more context for common errors
+    if (error.code === 'EAUTH') {
+      console.error('Hint: Authentication failed. If using Gmail, make sure you use an "App Password".');
+    } else if (error.code === 'ESOCKET') {
+      console.error('Hint: Network connection issue. Check your SMTP_HOST and SMTP_PORT.');
+    }
+    
     return false;
   }
 };

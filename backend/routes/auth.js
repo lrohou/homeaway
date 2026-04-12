@@ -26,7 +26,7 @@ router.post('/send-code', async (req, res) => {
     await run('INSERT INTO verification_codes (email, code, expires_at) VALUES (?, ?, ?)', [email, code, expiresAt]);
 
     // Send email
-    await sendEmail(
+    const emailSent = await sendEmail(
       email,
       'Votre code de vérification HomeAway',
       `Votre code de vérification est : ${code}`,
@@ -58,6 +58,10 @@ router.post('/send-code', async (req, res) => {
       </div>
       `
     );
+
+    if (!emailSent) {
+      return res.status(500).json({ error: "Failed to send verification email. Please check server logs." });
+    }
 
     res.json({ message: 'Verification code sent' });
   } catch (error) {
