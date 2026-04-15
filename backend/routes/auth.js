@@ -358,24 +358,12 @@ router.post('/test-email', async (req, res) => {
       return res.status(400).json({ error: 'Email is required' });
     }
 
-    console.log('\n========== EMAIL TEST START ==========');
-    console.log('SMTP_USER:', process.env.SMTP_USER);
-    console.log('SMTP_HOST:', process.env.SMTP_HOST);
-    console.log('SMTP_PORT:', process.env.SMTP_PORT);
-    console.log('SMTP_SECURE:', process.env.SMTP_SECURE);
-    console.log('SMTP_PASS length:', process.env.SMTP_PASS?.length);
-    console.log('Target email:', email);
-    console.log('=========================================\n');
-
     const result = await sendEmail(
       email,
       'Test Email from HomeAway',
       'This is a test email',
       '<h1>Test Email</h1><p>This is a test email from HomeAway backend.</p>'
     );
-
-    console.log('Send result:', result);
-    console.log('========== EMAIL TEST END ==========\n');
 
     res.json({
       success: result,
