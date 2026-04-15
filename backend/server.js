@@ -100,3 +100,7 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🌍 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
   console.log(`📦 Environment: ${process.env.NODE_ENV}`);
 });
+
+app.get("/ping", (req, res) => {
+  res.status(200).send("Pong");
+});
