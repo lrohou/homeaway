@@ -12,9 +12,13 @@ import tripStepsRoutes from './routes/tripSteps.js';
 import membersRoutes from './routes/members.js';
 import messagesRoutes from './routes/messages.js';
 import documentsRoutes from './routes/documents.js';
+import { initMailer } from './config/mailConfig.js';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
+
+// Initialize Mailer
+initMailer();
 
 // Middleware
 const allowedOrigins = [
