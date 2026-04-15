@@ -349,30 +349,4 @@ router.get('/admin/users', async (req, res) => {
   }
 });
 
-// TEST EMAIL ENDPOINT - For debugging only
-router.post('/test-email', async (req, res) => {
-  try {
-    const { email } = req.body;
-
-    if (!email) {
-      return res.status(400).json({ error: 'Email is required' });
-    }
-
-    const result = await sendEmail(
-      email,
-      'Test Email from HomeAway',
-      'This is a test email',
-      '<h1>Test Email</h1><p>This is a test email from HomeAway backend.</p>'
-    );
-
-    res.json({
-      success: result,
-      message: result ? 'Email sent successfully' : 'Email failed to send - check server logs'
-    });
-  } catch (error) {
-    console.error('Test email error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
 export default router;
