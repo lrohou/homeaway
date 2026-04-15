@@ -6,40 +6,26 @@ import nodemailer from 'nodemailer';
 const createTransporter = () => {
   const user = process.env.SMTP_USER;
   const pass = process.env.SMTP_PASS;
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = parseInt(process.env.SMTP_PORT || '587');
 
   if (!user || user === 'mock_user' || !pass) {
     return null;
   }
 
-  // Configuration for the transporter
-  const config = {
-    host,
-    port,
-    secure: port === 465, // true for 465, false for 587 (STARTTLS)
+  // Use Gmail service by default
+  return nodemailer.createTransport({
+    service: 'gmail',
     auth: {
       user,
       pass
     }
-  };
-
-  // If using Gmail service specifically, it can sometimes be more reliable
-  if (host.includes('gmail.com') && !process.env.SMTP_FORCE_HOST) {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass }
-    });
-  }
-
-  return nodemailer.createTransport(config);
+  });
 };
 
 export const sendEmail = async (to, subject, text, html) => {
   const transporter = createTransporter();
 
   const user = process.env.SMTP_USER || 'mock_user';
-  console.log(`📧 Attempting to send email to ${to} via ${process.env.SMTP_HOST || 'Gmail'} (User: ${user})`);
+  console.log(`📧 Attempting to send email to ${to} via Gmail (User: ${user})`);
 
   try {
     if (!transporter) {
@@ -63,14 +49,14 @@ export const sendEmail = async (to, subject, text, html) => {
   } catch (error) {
     console.error('❌ Failed to send email:');
     console.error(error);
-    
+
     // Provide more context for common errors
     if (error.code === 'EAUTH') {
       console.error('Hint: Authentication failed. If using Gmail, make sure you use an "App Password".');
     } else if (error.code === 'ESOCKET') {
-      console.error('Hint: Network connection issue. Check your SMTP_HOST and SMTP_PORT.');
+      console.error('Hint: Network connection issue. Check your SMTP configuration.');
     }
-    
+
     return false;
   }
 };
