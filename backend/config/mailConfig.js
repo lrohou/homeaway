@@ -8,18 +8,18 @@ export const initMailer = () => {
     console.log('SMTP_USER defined:', !!user);
     console.log('SMTP_USER value:', user ? user.substring(0, 5) + '***' : 'NOT SET');
     console.log('SMTP_PASS defined:', !!pass);
-    console.log('SMTP_PASS value:', pass ? pass.substring(0, 5) + '***' : 'NOT SET');
     console.log('========================');
 
     if (!user || !pass) {
         console.error('❌ CRITICAL: Email credentials are missing!');
-        console.error('Set SMTP_USER and SMTP_PASS in environment variables');
         return null;
     }
 
     try {
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
             auth: {
                 user,
                 pass
