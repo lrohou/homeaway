@@ -3,33 +3,39 @@ import nodemailer from 'nodemailer';
 export const initMailer = () => {
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
+    const host = process.env.SMTP_HOST;
+    const port = process.env.SMTP_PORT;
+    const secure = process.env.SMTP_SECURE === 'true';
 
-    console.log('=== MAIL CONFIG DEBUG ===');
-    console.log('SMTP_USER defined:', !!user);
-    console.log('SMTP_USER value:', user ? user.substring(0, 5) + '***' : 'NOT SET');
-    console.log('SMTP_PASS defined:', !!pass);
-    console.log('========================');
+    console.log('\n========== INITIALIZING MAILER ==========');
+    console.log('User:', user);
+    console.log('Host:', host);
+    console.log('Port:', port);
+    console.log('Secure:', secure);
+    console.log('Pass length:', pass?.length);
+    console.log('=========================================\n');
 
-    if (!user || !pass) {
-        console.error('❌ CRITICAL: Email credentials are missing!');
+    if (!user || !pass || !host || !port) {
+        console.error('❌ CRITICAL: Missing email environment variables!');
+        console.error('Required: SMTP_USER, SMTP_PASS, SMTP_HOST, SMTP_PORT');
         return null;
     }
 
     try {
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 587,
-            secure: false,
+            host: host,
+            port: parseInt(port),
+            secure: secure,
             auth: {
-                user,
-                pass
+                user: user,
+                pass: pass
             }
         });
 
-        console.log('✅ Mail transporter initialized successfully');
+        console.log('✅ Transporter created successfully');
         return transporter;
     } catch (error) {
-        console.error('❌ Failed to initialize mail transporter:', error);
+        console.error('❌ Failed to create transporter:', error.message);
         return null;
     }
 };
@@ -38,6 +44,7 @@ let transporter = null;
 
 export const getMailer = () => {
     if (!transporter) {
+        console.log('Creating new transporter...');
         transporter = initMailer();
     }
     return transporter;

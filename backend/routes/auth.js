@@ -160,7 +160,7 @@ router.post('/login', async (req, res) => {
 
     // Find user
     const users = await query('SELECT * FROM users WHERE email = ? AND auth_provider = ?', [email, 'email']);
-    
+
     if (users.length === 0) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -239,7 +239,7 @@ router.post('/google', async (req, res) => {
     } else {
       // Check if user exists by Email
       let usersByEmail = await query('SELECT * FROM users WHERE email = ?', [email]);
-      
+
       if (usersByEmail.length > 0) {
         // Link Google ID to existing account
         userId = usersByEmail[0].id;
@@ -324,7 +324,7 @@ router.delete('/me', authenticateToken, async (req, res) => {
     await run('DELETE FROM users WHERE id = ?', [req.userId]);
     // Also delete trip memberships
     await run('DELETE FROM trip_members WHERE user_id = ?', [req.userId]);
-    
+
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {
     console.error('Delete user error:', error);
@@ -346,6 +346,44 @@ router.get('/admin/users', async (req, res) => {
   } catch (error) {
     console.error('Get users error:', error);
     res.status(500).json({ error: 'Failed to fetch users' });
+  }
+});
+
+// TEST EMAIL ENDPOINT - For debugging only
+router.post('/test-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    console.log('\n========== EMAIL TEST START ==========');
+    console.log('SMTP_USER:', process.env.SMTP_USER);
+    console.log('SMTP_HOST:', process.env.SMTP_HOST);
+    console.log('SMTP_PORT:', process.env.SMTP_PORT);
+    console.log('SMTP_SECURE:', process.env.SMTP_SECURE);
+    console.log('SMTP_PASS length:', process.env.SMTP_PASS?.length);
+    console.log('Target email:', email);
+    console.log('=========================================\n');
+
+    const result = await sendEmail(
+      email,
+      'Test Email from HomeAway',
+      'This is a test email',
+      '<h1>Test Email</h1><p>This is a test email from HomeAway backend.</p>'
+    );
+
+    console.log('Send result:', result);
+    console.log('========== EMAIL TEST END ==========\n');
+
+    res.json({
+      success: result,
+      message: result ? 'Email sent successfully' : 'Email failed to send - check server logs'
+    });
+  } catch (error) {
+    console.error('Test email error:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
