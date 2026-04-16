@@ -231,8 +231,9 @@ export default function TripPlanning() {
           </Button>
         </div>*/}
         </div>
+      </div>
 
-        {/* Timeline by day */}
+      {/* Timeline by day */}
         {stepsLoading || accLoading || actLoading || transLoading ? (
           <div className="space-y-6">
             {[1, 2, 3].map((i) => (
