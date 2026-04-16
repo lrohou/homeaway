@@ -8,6 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plane, Compass, Clock } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/LanguageContext";
 
 function computeStatus(trip) {
   const today = new Date().toISOString().split("T")[0];
@@ -18,6 +19,7 @@ function computeStatus(trip) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [filter, setFilter] = React.useState("all");
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
@@ -65,11 +67,11 @@ export default function Dashboard() {
         className="space-y-1"
       >
         <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
-          Mes Voyages
+          {t('dashboard.title')}
         </h1>
         <p className="text-muted-foreground">
           Bienvenue{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
-          Planifiez et centralisez tous vos voyages.
+          {t('dashboard.subtitle')}
         </p>
       </motion.div>
 
@@ -121,10 +123,10 @@ export default function Dashboard() {
             <Compass className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="font-display text-xl font-semibold text-foreground mb-1.5">
-            {filter === "all" ? "Aucun voyage" : "Aucun voyage dans cette catégorie"}
+            {filter === "all" ? t('dashboard.empty') : t('dashboard.empty') + " (Catégorie)"}
           </h3>
           <p className="text-muted-foreground text-sm max-w-sm">
-            Créez votre premier voyage pour commencer à planifier votre prochaine aventure.
+            {t('dashboard.create')}
           </p>
         </motion.div>
       ) : (

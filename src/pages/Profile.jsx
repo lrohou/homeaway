@@ -94,15 +94,15 @@ export default function Profile() {
         {/* Header */}
         <div className="mb-8 flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-display font-bold text-gray-900">Mon Profil</h1>
-            <p className="text-muted-foreground mt-1">Gérez vos informations personnelles</p>
+            <h1 className="text-3xl font-display font-bold text-gray-900">{t('profile.title')}</h1>
+            <p className="text-muted-foreground mt-1">{t('profile.subtitle')}</p>
           </div>
           <Button 
             variant={isEditing ? "ghost" : "outline"} 
             onClick={() => setIsEditing(!isEditing)}
             className="rounded-full"
           >
-            {isEditing ? "Annuler" : "Modifier le profil"}
+            {isEditing ? t('profile.cancel') : t('profile.edit')}
           </Button>
         </div>
 
@@ -148,7 +148,7 @@ export default function Profile() {
                 )}
                 <p className="text-blue-100/80 text-sm flex items-center justify-center sm:justify-start gap-1.5 mt-1">
                   <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
-                  Utilisateur actif
+                  {t('profile.activeUser')}
                 </p>
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function Profile() {
                   <Mail className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Adresse Email</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.email')}</p>
                   <p className="text-gray-900 font-medium">{user.email}</p>
                 </div>
               </div>
@@ -174,7 +174,7 @@ export default function Profile() {
                     <Camera className="w-5 h-5" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">URL de l'avatar</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1">{t('profile.avatarUrl')}</p>
                     <Input
                       value={formData.avatar}
                       onChange={(e) => setFormData({ ...formData, avatar: e.target.value })}
@@ -191,7 +191,7 @@ export default function Profile() {
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.memberSince') || 'Membre depuis'}</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.memberSince')}</p>
                   <p className="text-gray-900 font-medium lowercase">
                     {new Date(user.created_at || Date.now()).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', {
                       year: 'numeric',
@@ -209,8 +209,8 @@ export default function Profile() {
                 </div>
                 <div className="flex-1 flex justify-between items-center">
                   <div>
-                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.language') || 'Langue'}</p>
-                    <p className="text-gray-900 font-medium">{lang === 'fr' ? (t('profile.langFr') || 'Français') : (t('profile.langEn') || 'English')}</p>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.language')}</p>
+                    <p className="text-gray-900 font-medium">{lang === 'fr' ? t('profile.langFr') : t('profile.langEn')}</p>
                   </div>
                   <div className="flex gap-2">
                     <Button 
@@ -243,7 +243,7 @@ export default function Profile() {
                   className="flex-1 rounded-2xl bg-blue-600 hover:bg-blue-700 h-12"
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Enregistrer les modifications
+                  {t('profile.save')}
                 </Button>
               ) : (
                 <>
@@ -253,7 +253,7 @@ export default function Profile() {
                     className="flex-1 rounded-2xl h-12 bg-rose-500 hover:bg-rose-600 border-none"
                   >
                     <LogOut className="w-4 h-4 mr-2" />
-                    Déconnexion
+                    {t('profile.logoutBtn')}
                   </Button>
                   
                   <AlertDialog>
@@ -263,24 +263,23 @@ export default function Profile() {
                         className="flex-1 rounded-2xl h-12 text-muted-foreground hover:text-rose-600 hover:bg-rose-50"
                       >
                         <Trash2 className="w-4 h-4 mr-2" />
-                        Supprimer le compte
+                        {t('profile.deleteAccount')}
                       </Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="rounded-3xl">
                       <AlertDialogHeader>
-                        <AlertDialogTitle>Êtes-vous absolument sûr ?</AlertDialogTitle>
+                        <AlertDialogTitle>{t('profile.deleteConfirm')}</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Cette action est irréversible. Elle supprimera définitivement votre compte
-                          et retirera vos données de nos serveurs.
+                          {t('profile.deleteDesc')}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel className="rounded-xl">Annuler</AlertDialogCancel>
+                        <AlertDialogCancel className="rounded-xl">{t('profile.deleteCancel')}</AlertDialogCancel>
                         <AlertDialogAction 
                           onClick={handleDeleteAccount}
                           className="bg-rose-600 hover:bg-rose-700 rounded-xl"
                         >
-                          Oui, supprimer mon compte
+                          {t('profile.deleteYes')}
                         </AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
@@ -294,7 +293,7 @@ export default function Profile() {
         {/* Support Info */}
         <div className="mt-8 text-center">
           <p className="text-sm text-muted-foreground">
-            Besoin d'aide ? <a href="mailto:support@homeaway.com" className="text-blue-600 hover:underline font-medium">Contactez le support</a>
+            {t('profile.support')} <a href="mailto:support@homeaway.com" className="text-blue-600 hover:underline font-medium">{t('profile.contactSupport')}</a>
           </p>
         </div>
       </div>

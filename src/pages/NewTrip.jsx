@@ -8,10 +8,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useTranslation } from "@/lib/LanguageContext";
 
 export default function NewTrip() {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { t } = useTranslation();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [form, setForm] = useState({
@@ -31,7 +33,7 @@ export default function NewTrip() {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Vous devez être connecté pour créer un voyage. <a href="/login" className="underline">Connexion</a>
+            {t('common.required')} <a href="/login" className="underline">Connexion</a>
           </AlertDescription>
         </Alert>
       </div>
@@ -81,14 +83,14 @@ export default function NewTrip() {
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
       >
         <ArrowLeft className="w-4 h-4" />
-        Retour
+        {t('trip.backToTrips')}
       </button>
 
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Créer un nouveau voyage</h1>
+        <h1 className="text-3xl font-bold mb-2">{t('app.newTrip')}</h1>
         <p className="text-muted-foreground">
-          Renseignez les informations principales de votre voyage.
+          {t('dashboard.subtitle')}
         </p>
       </div>
 

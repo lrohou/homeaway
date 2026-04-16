@@ -10,9 +10,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, Calendar, Clock, MapPin, Trash2, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
+import { useAuth } from '@/lib/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslation } from '@/lib/LanguageContext';
 
 export default function TripActivities() {
   const { tripId } = useParams();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,8 +29,10 @@ export default function TripActivities() {
     latitude: '',
     longitude: '',
     description: '',
-    location: ''
+    location: '',
+    paid_by: ''
   });
+  const { user } = useAuth();
 
   const { data: trip } = useQuery({
     queryKey: ['trip', tripId],
@@ -37,6 +43,21 @@ export default function TripActivities() {
     queryKey: ['activities', tripId],
     queryFn: () => api.activities.list(tripId),
   });
+
+  const React = require('react');
+  const { useMemo } = React;
+  
+  const tripMembers = useMemo(() => {
+    const m = [user?.email];
+    if (trip?.members) {
+      if (typeof trip.members[0] === "string") {
+        m.push(...trip.members);
+      } else {
+        m.push(...trip.members.map(x => x.email || x));
+      }
+    }
+    return [...new Set(m)].filter(Boolean);
+  }, [trip, user]);
 
   const createMutation = useMutation({
     mutationFn: (data) => api.activities.create(tripId, data),
@@ -53,7 +74,8 @@ export default function TripActivities() {
         latitude: '',
         longitude: '',
         description: '',
-        location: ''
+        location: '',
+        paid_by: ''
       });
     }
   });
@@ -79,24 +101,24 @@ export default function TripActivities() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Activities</h1>
-          <p className="text-gray-600 mt-1">Plan your trip activities and tours</p>
+          <h1 className="text-3xl font-bold">{t('activities.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('activities.subtitle')}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
-              Add Activity
+              {t('activities.add')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Add New Activity</DialogTitle>
-              <DialogDescription>Add a tour or activity to your trip</DialogDescription>
+              <DialogTitle>{t('activities.new')}</DialogTitle>
+              <DialogDescription>{t('activities.newDesc')}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Activity Name</Label>
+                <Label htmlFor="name">{t('activities.name')}</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -107,7 +129,7 @@ export default function TripActivities() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="date">Date</Label>
+                  <Label htmlFor="date">{t('activities.date')}</Label>
                   <Input
                     id="date"
                     type="date"
@@ -119,7 +141,7 @@ export default function TripActivities() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="time">Time</Label>
+                  <Label htmlFor="time">{t('activities.time')}</Label>
                   <Input
                     id="time"
                     type="time"
@@ -129,7 +151,7 @@ export default function TripActivities() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="duration">Duration (minutes)</Label>
+                <Label htmlFor="duration">{t('activities.duration')}</Label>
                 <Input
                   id="duration"
                   type="number"
@@ -139,7 +161,7 @@ export default function TripActivities() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t('activities.description')}</Label>
                 <Textarea
                   id="description"
                   value={formData.description}
@@ -148,26 +170,42 @@ export default function TripActivities() {
                   rows={3}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price">{t('activities.price')}</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paid_by">{t('expenses.paidBy')} ({t('expenses.optional')})</Label>
+                  <Select value={formData.paid_by} onValueChange={(value) => setFormData({ ...formData, paid_by: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('expenses.autoSystem')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t('expenses.autoSystem')}</SelectItem>
+                      {tripMembers.map((email) => (
+                        <SelectItem key={email} value={email}>{email}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="actLocation">Lieu</Label>
+                <Label htmlFor="actLocation">{t('activities.location')}</Label>
                 <AddressAutocomplete
                   defaultValue={formData.location}
-                  placeholder="Rechercher l'adresse de l'activité..."
+                  placeholder={t('activities.locationPlaceholder')}
                   onSelect={({ address, lat, lng }) => setFormData({ ...formData, location: address, latitude: lat, longitude: lng })}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                Add Activity
+                {t('activities.add')}
               </Button>
             </form>
           </DialogContent>
@@ -216,7 +254,7 @@ export default function TripActivities() {
 
       {activities.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No activities added yet</p>
+          <p className="text-gray-500">{t('activities.empty')}</p>
         </div>
       )}
     </div>

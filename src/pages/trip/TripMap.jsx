@@ -7,20 +7,21 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useTranslation } from "@/lib/LanguageContext";
 
 const MAPTILER_STYLE = "https://api.maptiler.com/maps/019d9665-0270-7b06-bf41-907c11a5295a/style.json?key=FZ6exJZ6JibveJODuzvj";
 
-// Category config: color, emoji, label
+// Category config: color, emoji, key
 const CATEGORIES = {
-  hotel: { color: "#10b981", emoji: "🏠", label: "Logement", gradient: "from-emerald-400 to-teal-500" },
-  activity: { color: "#f59e0b", emoji: "🎯", label: "Activité", gradient: "from-amber-400 to-orange-500" },
-  flight: { color: "#3b82f6", emoji: "✈️", label: "Vol", gradient: "from-blue-400 to-indigo-500" },
-  train: { color: "#6366f1", emoji: "🚆", label: "Train", gradient: "from-indigo-400 to-violet-500" },
-  bus: { color: "#8b5cf6", emoji: "🚌", label: "Bus", gradient: "from-violet-400 to-purple-500" },
-  car: { color: "#ec4899", emoji: "🚗", label: "Voiture", gradient: "from-pink-400 to-rose-500" },
-  transport: { color: "#6366f1", emoji: "🚀", label: "Transport", gradient: "from-indigo-400 to-violet-500" },
-  step: { color: "#a855f7", emoji: "📍", label: "Étape", gradient: "from-purple-400 to-fuchsia-500" },
-  other: { color: "#64748b", emoji: "📌", label: "Autre", gradient: "from-slate-400 to-gray-500" },
+  hotel: { color: "#10b981", emoji: "🏠", key: "cat.hotel", gradient: "from-emerald-400 to-teal-500" },
+  activity: { color: "#f59e0b", emoji: "🎯", key: "cat.activity", gradient: "from-amber-400 to-orange-500" },
+  flight: { color: "#3b82f6", emoji: "✈️", key: "cat.flight", gradient: "from-blue-400 to-indigo-500" },
+  train: { color: "#6366f1", emoji: "🚆", key: "cat.train", gradient: "from-indigo-400 to-violet-500" },
+  bus: { color: "#8b5cf6", emoji: "🚌", key: "cat.bus", gradient: "from-violet-400 to-purple-500" },
+  car: { color: "#ec4899", emoji: "🚗", key: "cat.car", gradient: "from-pink-400 to-rose-500" },
+  transport: { color: "#6366f1", emoji: "🚀", key: "cat.transport", gradient: "from-indigo-400 to-violet-500" },
+  step: { color: "#a855f7", emoji: "📍", key: "cat.step", gradient: "from-purple-400 to-fuchsia-500" },
+  other: { color: "#64748b", emoji: "📌", key: "cat.other", gradient: "from-slate-400 to-gray-500" },
 };
 
 function createMarkerElement(type) {
@@ -56,7 +57,7 @@ function createMarkerElement(type) {
   return el;
 }
 
-function createPopupHTML(item) {
+function createPopupHTML(item, t) {
   const cat = CATEGORIES[item.type] || CATEGORIES.other;
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
 
@@ -78,7 +79,7 @@ function createPopupHTML(item) {
             letter-spacing: 0.5px; border-radius: 20px;
             background: ${cat.color}15; color: ${cat.color};
             border: 1px solid ${cat.color}30;
-          ">${cat.label}</span>
+          ">${t(cat.key)}</span>
         </div>
       </div>
       ${item.location ? `
@@ -123,7 +124,7 @@ function createPopupHTML(item) {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="3 11 22 2 13 21 11 13 3 11"/>
         </svg>
-        Y aller
+        ${t('map.goThere')}
       </a>
     </div>
   `;
@@ -131,6 +132,7 @@ function createPopupHTML(item) {
 
 export default function TripMap() {
   const { tripId } = useParams();
+  const { t } = useTranslation();
   const mapContainerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
@@ -268,7 +270,7 @@ export default function TripMap() {
         closeOnClick: false,
         maxWidth: "300px",
         className: "trip-map-popup",
-      }).setHTML(createPopupHTML(item));
+      }).setHTML(createPopupHTML(item, t));
 
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([item.longitude, item.latitude])
@@ -294,7 +296,7 @@ export default function TripMap() {
       <div className="flex items-center justify-center py-20">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
+          <p className="text-sm text-muted-foreground">{t('map.loading')}</p>
         </div>
       </div>
     );
@@ -307,10 +309,10 @@ export default function TripMap() {
         <div className="flex items-center gap-3">
           <div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
-              Carte du voyage
+              {t('map.title')}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Tous vos lieux sur une seule carte interactive
+              {t('map.subtitle')}
             </p>
           </div>
         </div>
@@ -319,7 +321,7 @@ export default function TripMap() {
           className="gap-1.5 py-1.5 px-4 bg-slate-100 text-slate-700 border border-slate-200 font-semibold"
         >
           <Navigation className="w-3.5 h-3.5" />
-          {allGeoItems.length} {allGeoItems.length > 1 ? "lieux" : "lieu"}
+          {allGeoItems.length} {allGeoItems.length > 1 ? t('map.places') : t('map.place')}
         </Badge>
       </div>
 
@@ -347,7 +349,7 @@ export default function TripMap() {
                       style={{ background: cat.color }}
                     />
                     <span className="text-xs font-medium text-slate-600">
-                      {cat.label}
+                      {t(cat.key)}
                     </span>
                     <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
                       {count}
@@ -365,11 +367,8 @@ export default function TripMap() {
         <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <MapPin className="h-4 w-4 text-blue-500" />
           <AlertDescription className="text-blue-700">
-            <span className="font-semibold">Aucun lieu à afficher.</span>{" "}
-            Ajoutez des adresses à vos logements, transports ou activités pour
-            les voir apparaître sur la carte. Utilisez le champ de recherche
-            d'adresse dans les formulaires d'ajout pour géolocaliser
-            automatiquement vos réservations.
+            <span className="font-semibold">{t('map.empty')}</span>{" "}
+            {t('map.emptyHint')}
           </AlertDescription>
         </Alert>
       )}

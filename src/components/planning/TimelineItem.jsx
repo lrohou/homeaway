@@ -4,16 +4,19 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 
 const typeConfig = {
-  flight: { icon: Plane, label: "Vol", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  train: { icon: Train, label: "Train", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
-  hotel: { icon: BedDouble, label: "Hôtel", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-  restaurant: { icon: Utensils, label: "Restaurant", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
-  activity: { icon: MapPin, label: "Activité", color: "bg-pink-500/10 text-pink-600 border-pink-500/20" },
-  transport: { icon: Car, label: "Transport", color: "bg-teal-500/10 text-teal-600 border-teal-500/20" },
-  other: { icon: Clock, label: "Autre", color: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
+  flight: { icon: Plane, key: "cat.flight", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  train: { icon: Train, key: "cat.train", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  hotel: { icon: BedDouble, key: "cat.hotel", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
+  restaurant: { icon: Utensils, key: "expenses.food", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
+  activity: { icon: MapPin, key: "cat.activity", color: "bg-pink-500/10 text-pink-600 border-pink-500/20" },
+  transport: { icon: Car, key: "cat.transport", color: "bg-teal-500/10 text-teal-600 border-teal-500/20" },
+  other: { icon: Clock, key: "cat.other", color: "bg-gray-500/10 text-gray-600 border-gray-500/20" },
 };
 
+import { useTranslation } from "@/lib/LanguageContext";
+
 export default function TimelineItem({ step, onEdit, onDelete, index }) {
+  const { t } = useTranslation();
   const config = typeConfig[step.type] || typeConfig.other;
   const Icon = config.icon;
 
@@ -45,7 +48,7 @@ export default function TimelineItem({ step, onEdit, onDelete, index }) {
                   </span>
                 )}
                 <Badge variant="secondary" className={`text-xs border ${config.color}`}>
-                  {config.label}
+                  {t(config.key)}
                 </Badge>
               </div>
               <h4 className="font-semibold text-foreground">{step.title}</h4>
@@ -67,7 +70,7 @@ export default function TimelineItem({ step, onEdit, onDelete, index }) {
                       rel="noopener noreferrer"
                     >
                       <MapPin className="w-3 h-3" />
-                      Y Aller
+                      {t('planning.goThere')}
                     </a>
                   </Button>
                 </div>

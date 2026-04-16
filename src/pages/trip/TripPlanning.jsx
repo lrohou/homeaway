@@ -12,9 +12,11 @@ import TimelineItem from "@/components/planning/TimelineItem";
 import DocumentUploadDialog from "@/components/documents/DocumentUploadDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/LanguageContext";
 
 export default function TripPlanning() {
   const { tripId } = useParams();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingStep, setEditingStep] = useState(null);
@@ -264,13 +266,13 @@ export default function TripPlanning() {
                   )}
                   <div className="flex-1 h-px bg-border" />
                   <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
-                    {group.steps.length} étape{group.steps.length !== 1 ? "s" : ""}
+                    {group.steps.length} {group.steps.length > 1 ? t('planning.steps') : t('planning.step')}
                   </span>
                 </div>
 
                 {group.steps.length === 0 ? (
                   <div className="text-sm text-muted-foreground pl-14 py-2">
-                    Aucune étape prévue
+                    {t('planning.noSteps')}
                   </div>
                 ) : (
                   <div>

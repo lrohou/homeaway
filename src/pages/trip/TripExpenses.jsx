@@ -13,11 +13,12 @@ import {
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, Loader2, Receipt, ArrowUpRight, ArrowDownLeft } from "lucide-react";
+import { Plus, Trash2, Loader2, Receipt, ArrowUpRight, ArrowDownLeft, Scale } from "lucide-react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/LanguageContext";
 
 const categoryLabels = {
   accommodation: "🏨 Hébergement",
@@ -31,6 +32,7 @@ const categoryLabels = {
 export default function TripExpenses() {
   const { tripId } = useParams();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
@@ -73,11 +75,11 @@ export default function TripExpenses() {
       .filter((a) => a.price > 0)
       .map((a) => ({
         id: `act_${a.id}`,
-        title: `Activité : ${a.name}`,
+        title: `${t('cat.activity')} : ${a.name}`,
         amount: Number(a.price),
         category: "activity",
         date: a.date,
-        paid_by: a.paid_by || "Système (Automatique)",
+        paid_by: a.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));
@@ -85,11 +87,11 @@ export default function TripExpenses() {
       .filter((t) => t.price > 0)
       .map((t) => ({
         id: `trans_${t.id}`,
-        title: `Transport : ${t.type} vers ${t.arrival}`,
+        title: `${t('cat.transport')} : ${t.type} → ${t.arrival}`,
         amount: Number(t.price),
         category: "transport",
         date: t.departureTime || new Date().toISOString(),
-        paid_by: t.paid_by || "Système (Automatique)",
+        paid_by: t.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));
@@ -98,11 +100,11 @@ export default function TripExpenses() {
       .filter((a) => a.price > 0)
       .map((a) => ({
         id: `acc_${a.id}`,
-        title: `Hébergement : ${a.name}`,
+        title: `${t('cat.hotel')} : ${a.name}`,
         amount: Number(a.price),
         category: "accommodation",
         date: a.checkIn || new Date().toISOString(),
-        paid_by: a.paid_by || "Système (Automatique)",
+        paid_by: a.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));
@@ -231,42 +233,43 @@ export default function TripExpenses() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-3xl font-bold">Dépenses</h2>
+        <h2 className="text-3xl font-bold">{t('expenses.title')}</h2>
         <div className="flex items-center gap-2">
           {Object.keys(balances).length > 1 && (
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5"
+              className="gap-1.5 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full"
               onClick={() => setShowBalance(true)}
             >
-              Équilibre
+              <Scale className="w-4 h-4" />
+              {t('expenses.balance')}
             </Button>
           )}
           <Button
             size="sm"
-            className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
+            className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full"
             onClick={() => setShowAdd(true)}
           >
             <Plus className="w-4 h-4" />
-            Ajouter
+            {t('expenses.add')}
           </Button>
         </div>
       </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-sm text-muted-foreground">Total dépenses</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{total.toFixed(2)}€</p>
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t('expenses.total')}</p>
+          <p className="text-3xl font-display font-bold text-foreground">{total.toFixed(2)}€</p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-sm text-muted-foreground">Nombre</p>
-          <p className="text-2xl font-bold text-foreground mt-1">{allExpenses.length}</p>
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t('expenses.count')}</p>
+          <p className="text-3xl font-display font-bold text-foreground">{allExpenses.length}</p>
         </div>
-        <div className="bg-card border border-border rounded-xl p-4">
-          <p className="text-sm text-muted-foreground">Budget restant</p>
-          <p className="text-2xl font-bold text-foreground mt-1">
+        <div className="bg-card border border-border rounded-2xl p-5 shadow-sm">
+          <p className="text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-1">{t('expenses.budgetLeft')}</p>
+          <p className="text-3xl font-display font-bold text-foreground">
             {trip?.budget ? `${(trip.budget - total).toFixed(2)}€` : "—"}
           </p>
         </div>
@@ -279,9 +282,9 @@ export default function TripExpenses() {
           {[1, 2, 3].map((i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
         </div>
       ) : allExpenses.length === 0 ? (
-        <div className="text-center py-16">
+        <div className="text-center py-16 bg-slate-50/50 rounded-3xl border border-slate-100">
           <Receipt className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">Aucune dépense enregistrée</p>
+          <p className="text-muted-foreground">{t('expenses.empty')}</p>
         </div>
       ) : (
         <div className="space-y-2">
@@ -291,14 +294,16 @@ export default function TripExpenses() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: i * 0.03 }}
-              className="flex items-center justify-between bg-card border border-border rounded-xl p-4 group"
+              className="flex items-center justify-between bg-card border border-border rounded-2xl p-4 group hover:shadow-md transition-all"
             >
-              <div className="flex items-center gap-3 min-w-0">
-                <span className="text-lg">{categoryLabels[exp.category]?.split(" ")[0] || "📦"}</span>
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+                  <span className="text-xl">{categoryLabels[exp.category]?.split(" ")[0] || "📦"}</span>
+                </div>
                 <div className="min-w-0">
-                  <p className="font-medium text-foreground text-sm truncate">{exp.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {exp.paid_by}{exp.date && ` · ${format(new Date(exp.date), "d MMM", { locale: fr })}`}
+                  <p className="font-semibold text-foreground text-base truncate">{exp.title}</p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {t('expenses.paidBy')} {exp.paid_by}{exp.date && ` · ${format(new Date(exp.date), "d MMM yyyy", { locale: fr })}`}
                   </p>
                 </div>
               </div>
@@ -322,13 +327,13 @@ export default function TripExpenses() {
 
       {/* Add Expense Dialog */}
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-md rounded-3xl">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">Nouvelle dépense</DialogTitle>
+            <DialogTitle className="font-display text-xl">{t('expenses.newExpense')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAdd} className="space-y-4 mt-2">
             <div className="space-y-2">
-              <Label>Description *</Label>
+              <Label>{t('expenses.description')} *</Label>
               <Input
                 placeholder="Ex: Dîner au restaurant"
                 value={form.title}
@@ -338,7 +343,7 @@ export default function TripExpenses() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Montant *</Label>
+                <Label>{t('expenses.amount')} *</Label>
                 <Input
                   type="number"
                   step="0.01"
@@ -349,12 +354,12 @@ export default function TripExpenses() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Catégorie</Label>
+                <Label>{t('expenses.category')}</Label>
                 <Select value={form.category} onValueChange={(v) => setForm((f) => ({ ...f, category: v }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     {Object.entries(categoryLabels).map(([k, v]) => (
-                      <SelectItem key={k} value={k}>{v}</SelectItem>
+                      <SelectItem key={k} value={k}>{t(`expenses.${k}`) || v}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -362,7 +367,7 @@ export default function TripExpenses() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label>Date</Label>
+                <Label>{t('expenses.date')}</Label>
                 <Input
                   type="date"
                   value={form.date}
@@ -370,9 +375,9 @@ export default function TripExpenses() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Payé par</Label>
+                <Label>{t('expenses.paidBy')}</Label>
                 <Select value={form.paid_by} onValueChange={(v) => setForm((f) => ({ ...f, paid_by: v }))}>
-                  <SelectTrigger><SelectValue placeholder="Sélectionnez un membre" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Membre" /></SelectTrigger>
                   <SelectContent>
                     {tripMembers.map((email) => (
                       <SelectItem key={email} value={email}>{email}</SelectItem>
@@ -384,50 +389,68 @@ export default function TripExpenses() {
             <Button
               type="submit"
               disabled={saving}
-              className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
+              className="w-full bg-accent text-accent-foreground hover:bg-accent/90 rounded-xl h-11"
             >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Ajouter la dépense
+              {t('expenses.addExpense')}
             </Button>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Balance Modal */}
       <Dialog open={showBalance} onOpenChange={setShowBalance}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl">Équilibre des comptes</DialogTitle>
-          </DialogHeader>
-          <div className="mt-4 space-y-4">
+        <DialogContent className="max-w-md rounded-[2rem] p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-gradient-to-b from-blue-600 to-indigo-700 p-6 sm:p-8 text-white relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3" />
+            <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-900/30 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
+            <DialogHeader className="relative z-10">
+              <DialogTitle className="font-display text-2xl text-white">{t('expenses.balanceTitle')}</DialogTitle>
+              <p className="text-blue-100/80 text-sm mt-1 mb-2">{t('expenses.balanceDesc')}</p>
+            </DialogHeader>
+          </div>
+          
+          <div className="p-6 sm:p-8 bg-slate-50 min-h-[300px]">
             {settlements.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">Tous les comptes sont à l'équilibre !</p>
+              <div className="flex flex-col items-center justify-center text-center py-12 px-4 h-full">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-4">
+                  <Scale className="w-8 h-8" />
+                </div>
+                <p className="font-display font-semibold text-lg text-slate-800">{t('expenses.noReimbursements')}</p>
+              </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2 px-1">{t('expenses.reimbursements')}</h4>
                 {settlements.map((s, i) => (
-                  <div key={i} className="flex flex-col p-3 rounded-lg bg-secondary/30 border border-border">
-                    <div className="flex items-center justify-between">
-                      <div className="flex flex-col">
-                        <span className="text-sm font-medium">{s.from}</span>
-                        <span className="text-xs text-muted-foreground">doit rembourser à {s.to}</span>
+                  <div key={i} className="flex relative items-center gap-4 p-4 rounded-2xl bg-white border border-slate-200/60 shadow-sm hover:shadow-md transition-all">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-semibold text-slate-900 truncate">{s.from}</span>
                       </div>
-                      <span className="font-bold text-base text-foreground">{s.amount.toFixed(2)}€</span>
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+                        <span>{t('expenses.owes')}</span>
+                        <ArrowUpRight className="w-3.5 h-3.5 text-rose-500" />
+                        <span className="text-slate-700 truncate">{s.to}</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col items-end shrink-0">
+                      <span className="font-display font-bold text-lg text-rose-600 bg-rose-50 px-3 py-1 rounded-full">{s.amount.toFixed(2)}€</span>
                     </div>
                   </div>
                 ))}
               </div>
             )}
             
-            {Object.keys(balances).length > 0 && (
-              <div className="pt-4 border-t border-border mt-4">
-                <h4 className="text-sm font-semibold mb-2 text-foreground">Synthèse des soldes purs</h4>
-                <div className="space-y-1.5">
+            {Object.keys(balances).length > 0 && settlements.length > 0 && (
+              <div className="pt-6 mt-6 border-t border-slate-200">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">Synthèse</h4>
+                <div className="space-y-2">
                   {Object.entries(balances)
                     .filter(([_, bal]) => Math.abs(bal) > 0.01)
+                    .sort((a, b) => b[1] - a[1])
                     .map(([email, bal]) => (
-                    <div key={email} className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">{email}</span>
-                      <span className={bal >= 0 ? "text-green-600 font-medium" : "text-destructive font-medium"}>
+                    <div key={email} className="flex justify-between items-center bg-white border border-slate-100 p-2.5 rounded-xl">
+                      <span className="text-sm font-medium text-slate-700 truncate mr-2">{email}</span>
+                      <span className={`text-sm font-bold px-2.5 py-1 rounded-lg ${bal > 0 ? "bg-emerald-50 text-emerald-600" : "bg-rose-50 text-rose-600"}`}>
                         {bal > 0 ? "+" : ""}{bal.toFixed(2)}€
                       </span>
                     </div>

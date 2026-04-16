@@ -11,9 +11,13 @@ import { Plus, MapPin, DollarSign, CalendarDays, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
+import { useAuth } from '@/lib/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useTranslation } from '@/lib/LanguageContext';
 
 export default function TripAccommodations() {
   const { tripId } = useParams();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -25,8 +29,10 @@ export default function TripAccommodations() {
     currency: 'EUR',
     bookingReference: '',
     latitude: '',
-    longitude: ''
+    longitude: '',
+    paid_by: ''
   });
+  const { user } = useAuth();
 
   const { data: trip } = useQuery({
     queryKey: ['trip', tripId],
@@ -37,6 +43,21 @@ export default function TripAccommodations() {
     queryKey: ['accommodations', tripId],
     queryFn: () => api.accommodations.list(tripId),
   });
+
+  const React = require('react');
+  const { useMemo } = React;
+  
+  const tripMembers = useMemo(() => {
+    const m = [user?.email];
+    if (trip?.members) {
+      if (typeof trip.members[0] === "string") {
+        m.push(...trip.members);
+      } else {
+        m.push(...trip.members.map(x => x.email || x));
+      }
+    }
+    return [...new Set(m)].filter(Boolean);
+  }, [trip, user]);
 
   const createMutation = useMutation({
     mutationFn: (data) => api.accommodations.create(tripId, data),
@@ -52,7 +73,8 @@ export default function TripAccommodations() {
         currency: 'EUR',
         bookingReference: '',
         latitude: '',
-        longitude: ''
+        longitude: '',
+        paid_by: ''
       });
     }
   });
@@ -76,24 +98,24 @@ export default function TripAccommodations() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Accommodations</h1>
-          <p className="text-gray-600 mt-1">Manage your trip accommodations</p>
+          <h1 className="text-3xl font-bold">{t('accommodations.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('accommodations.subtitle')}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
-              Add Accommodation
+              {t('accommodations.add')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Accommodation</DialogTitle>
-              <DialogDescription>Add a new lodging to your trip</DialogDescription>
+              <DialogTitle>{t('accommodations.new')}</DialogTitle>
+              <DialogDescription>{t('accommodations.newDesc')}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">Hotel/Property Name</Label>
+                <Label htmlFor="name">{t('accommodations.nameLabel')}</Label>
                 <Input
                   id="name"
                   value={formData.name}
@@ -103,16 +125,16 @@ export default function TripAccommodations() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Adresse</Label>
+                <Label htmlFor="location">{t('accommodations.addressLabel')}</Label>
                 <AddressAutocomplete
                   defaultValue={formData.location}
-                  placeholder="Rechercher l'adresse du logement..."
+                  placeholder={t('accommodations.addressPlaceholder')}
                   onSelect={({ address, lat, lng }) => setFormData({ ...formData, location: address, latitude: lat, longitude: lng })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="checkIn">Check-in Date</Label>
+                  <Label htmlFor="checkIn">{t('accommodations.checkIn')}</Label>
                   <Input
                     id="checkIn"
                     type="date"
@@ -124,7 +146,7 @@ export default function TripAccommodations() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="checkOut">Check-out Date</Label>
+                  <Label htmlFor="checkOut">{t('accommodations.checkOut')}</Label>
                   <Input
                     id="checkOut"
                     type="date"
@@ -136,28 +158,44 @@ export default function TripAccommodations() {
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                  required
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price">{t('accommodations.price')}</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paid_by">{t('expenses.paidBy')} ({t('expenses.optional')})</Label>
+                  <Select value={formData.paid_by} onValueChange={(value) => setFormData({ ...formData, paid_by: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('expenses.autoSystem')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t('expenses.autoSystem')}</SelectItem>
+                      {tripMembers.map((email) => (
+                        <SelectItem key={email} value={email}>{email}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bookingRef">Booking Reference</Label>
+                <Label htmlFor="bookingRef">{t('accommodations.bookingRef')}</Label>
                 <Input
                   id="bookingRef"
                   value={formData.bookingReference}
                   onChange={(e) => setFormData({ ...formData, bookingReference: e.target.value })}
-                  placeholder="Booking reference"
+                  placeholder={t('accommodations.bookingRef')}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                Add Accommodation
+                {t('accommodations.add')}
               </Button>
             </form>
           </DialogContent>
@@ -173,7 +211,7 @@ export default function TripAccommodations() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary" className="bg-emerald-50 text-emerald-700 border-emerald-100 uppercase text-[10px] tracking-wider">
-                      Logement
+                      {t('cat.hotel')}
                     </Badge>
                   </div>
                   <CardTitle className="text-xl font-display font-bold leading-tight">{acc.name}</CardTitle>
@@ -197,23 +235,23 @@ export default function TripAccommodations() {
             <CardContent className="space-y-4 pb-6">
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Arrivée</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{t('accommodations.checkIn')}</p>
                   <p className="text-sm font-semibold">{acc.checkIn}</p>
                 </div>
                 <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">Départ</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{t('accommodations.checkOut')}</p>
                   <p className="text-sm font-semibold">{acc.checkOut}</p>
                 </div>
               </div>
               
               <div className="flex items-center justify-between pt-2 border-t border-slate-50">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Budget total</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('accommodations.price')}</span>
                   <span className="text-xl font-display font-bold text-slate-900">{acc.price} {acc.currency}</span>
                 </div>
                 {acc.bookingReference && (
                   <div className="text-right">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter block leading-none">Référence</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter block leading-none">{t('accommodations.bookingRef')}</span>
                     <span className="text-sm font-mono text-slate-600">{acc.bookingReference}</span>
                   </div>
                 )}
@@ -231,7 +269,7 @@ export default function TripAccommodations() {
                   className="gap-2"
                 >
                   <MapPin className="w-4 h-4" />
-                  Voir sur la carte
+                  {t('map.goThere')}
                 </a>
               </Button>
             </CardContent>
@@ -241,7 +279,7 @@ export default function TripAccommodations() {
 
       {accommodations.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No accommodations added yet</p>
+          <p className="text-gray-500">{t('accommodations.empty')}</p>
         </div>
       )}
     </div>

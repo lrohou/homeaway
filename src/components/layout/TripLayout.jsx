@@ -5,23 +5,25 @@ import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/apiClient";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/LanguageContext";
 
 const tabs = [
-  { label: "Planning", path: "planning", icon: CalendarDays },
-  { label: "Logements", path: "accommodations", icon: Hotel },
-  { label: "Transports", path: "transports", icon: Plane },
-  { label: "Activités", path: "activities", icon: Palmtree },
-  { label: "Documents", path: "documents", icon: FileText },
-  { label: "Carte", path: "map", icon: Map },
-  { label: "Dépenses", path: "expenses", icon: Receipt },
-  { label: "Chat", path: "chat", icon: MessageSquare },
-  { label: "Membres", path: "members", icon: Users },
-  { label: "Paramètres", path: "settings", icon: Settings },
+  { key: "tab.planning", path: "planning", icon: CalendarDays },
+  { key: "tab.accommodations", path: "accommodations", icon: Hotel },
+  { key: "tab.transports", path: "transports", icon: Plane },
+  { key: "tab.activities", path: "activities", icon: Palmtree },
+  { key: "tab.documents", path: "documents", icon: FileText },
+  { key: "tab.map", path: "map", icon: Map },
+  { key: "tab.expenses", path: "expenses", icon: Receipt },
+  { key: "tab.chat", path: "chat", icon: MessageSquare },
+  { key: "tab.members", path: "members", icon: Users },
+  { key: "tab.settings", path: "settings", icon: Settings },
 ];
 
 export default function TripLayout() {
   const { tripId } = useParams();
   const location = useLocation();
+  const { t } = useTranslation();
   const currentTab = location.pathname.split("/").pop();
 
   const { data: trip, isLoading } = useQuery({
@@ -37,7 +39,7 @@ export default function TripLayout() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
         >
           <ArrowLeft className="w-4 h-4" />
-          Mes voyages
+          {t('trip.backToTrips')}
         </Link>
       </div>
 
@@ -51,8 +53,8 @@ export default function TripLayout() {
             </div>
           ) : (
             <div>
-              <h2 className="font-display text-xl font-bold text-foreground truncate">
-                {trip?.name || "Chargement..."}
+              <h2 className="font-display text-xl font-bold text-foreground truncate max-w-sm">
+                {trip?.name || t('common.loading')}
               </h2>
               {trip?.location_name && (
                 <p className="text-sm text-muted-foreground truncate">
@@ -78,7 +80,7 @@ export default function TripLayout() {
                 )}
               >
                 <Icon className={cn("w-4 h-4", isActive ? "animate-pulse" : "")} />
-                {tab.label}
+                {t(tab.key)}
                 {isActive && (
                   <motion.div
                     layoutId="activeTab"

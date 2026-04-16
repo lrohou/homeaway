@@ -11,9 +11,12 @@ import { Plus, Plane, Train, Bus, Trash2, MapPin } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
+import { useAuth } from '@/lib/AuthContext';
+import { useTranslation } from '@/lib/LanguageContext';
 
 export default function TripTransports() {
   const { tripId } = useParams();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -26,8 +29,10 @@ export default function TripTransports() {
     price: '',
     currency: 'EUR',
     latitude: '',
-    longitude: ''
+    longitude: '',
+    paid_by: ''
   });
+  const { user } = useAuth();
 
   const { data: trip } = useQuery({
     queryKey: ['trip', tripId],
@@ -38,6 +43,21 @@ export default function TripTransports() {
     queryKey: ['transports', tripId],
     queryFn: () => api.transports.list(tripId),
   });
+
+  const React = require('react');
+  const { useMemo } = React;
+  
+  const tripMembers = useMemo(() => {
+    const m = [user?.email];
+    if (trip?.members) {
+      if (typeof trip.members[0] === "string") {
+        m.push(...trip.members);
+      } else {
+        m.push(...trip.members.map(x => x.email || x));
+      }
+    }
+    return [...new Set(m)].filter(Boolean);
+  }, [trip, user]);
 
   const createMutation = useMutation({
     mutationFn: (data) => api.transports.create(tripId, data),
@@ -54,7 +74,8 @@ export default function TripTransports() {
         price: '',
         currency: 'EUR',
         latitude: '',
-        longitude: ''
+        longitude: '',
+        paid_by: ''
       });
     }
   });
@@ -91,39 +112,39 @@ export default function TripTransports() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Transports</h1>
-          <p className="text-gray-600 mt-1">Manage your trip transportation</p>
+          <h1 className="text-3xl font-bold">{t('transports.title')}</h1>
+          <p className="text-gray-600 mt-1">{t('transports.subtitle')}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
             <Button className="gap-2">
               <Plus className="w-4 h-4" />
-              Add Transport
+              {t('transports.add')}
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-md">
             <DialogHeader>
-              <DialogTitle>Add New Transport</DialogTitle>
-              <DialogDescription>Add a flight, train, or bus booking</DialogDescription>
+              <DialogTitle>{t('transports.new')}</DialogTitle>
+              <DialogDescription>{t('transports.newDesc')}</DialogDescription>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="type">Transport Type</Label>
+                <Label htmlFor="type">{t('transports.type')}</Label>
                 <Select value={formData.type} onValueChange={(value) => setFormData({ ...formData, type: value })}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="flight">Flight</SelectItem>
-                    <SelectItem value="train">Train</SelectItem>
-                    <SelectItem value="bus">Bus</SelectItem>
-                    <SelectItem value="car">Car Rental</SelectItem>
+                    <SelectItem value="flight">{t('cat.flight')}</SelectItem>
+                    <SelectItem value="train">{t('cat.train')}</SelectItem>
+                    <SelectItem value="bus">{t('cat.bus')}</SelectItem>
+                    <SelectItem value="car">{t('cat.car')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="departure">Departure</Label>
+                  <Label htmlFor="departure">{t('transports.departure')}</Label>
                   <Input
                     id="departure"
                     value={formData.departure}
@@ -132,7 +153,7 @@ export default function TripTransports() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="arrival">Arrival</Label>
+                  <Label htmlFor="arrival">{t('transports.arrival')}</Label>
                   <Input
                     id="arrival"
                     value={formData.arrival}
@@ -143,7 +164,7 @@ export default function TripTransports() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="deptTime">Departure Time</Label>
+                  <Label htmlFor="deptTime">{t('transports.departureTime')}</Label>
                   <Input
                     id="deptTime"
                     type="datetime-local"
@@ -154,7 +175,7 @@ export default function TripTransports() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="arrTime">Arrival Time</Label>
+                  <Label htmlFor="arrTime">{t('transports.arrivalTime')}</Label>
                   <Input
                     id="arrTime"
                     type="datetime-local"
@@ -166,34 +187,50 @@ export default function TripTransports() {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="bookingRef">Booking Reference</Label>
+                <Label htmlFor="bookingRef">{t('transports.bookingRef')}</Label>
                 <Input
                   id="bookingRef"
                   value={formData.bookingReference}
                   onChange={(e) => setFormData({ ...formData, bookingReference: e.target.value })}
-                  placeholder="Booking code"
+                  placeholder={t('transports.bookingRef')}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="price">Price</Label>
-                <Input
-                  id="price"
-                  type="number"
-                  value={formData.price}
-                  onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                  placeholder="0.00"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="price">{t('transports.price')}</Label>
+                  <Input
+                    id="price"
+                    type="number"
+                    value={formData.price}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="paid_by">{t('expenses.paidBy')} ({t('expenses.optional')})</Label>
+                  <Select value={formData.paid_by} onValueChange={(value) => setFormData({ ...formData, paid_by: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={t('expenses.autoSystem')} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">{t('expenses.autoSystem')}</SelectItem>
+                      {tripMembers.map((email) => (
+                        <SelectItem key={email} value={email}>{email}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="destAddress">Adresse de destination</Label>
+                <Label htmlFor="destAddress">{t('transports.destAddress')}</Label>
                 <AddressAutocomplete
                   defaultValue=""
-                  placeholder="Rechercher l'adresse d'arrivée..."
+                  placeholder={t('transports.destPlaceholder')}
                   onSelect={({ address, lat, lng }) => setFormData({ ...formData, latitude: lat, longitude: lng })}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>
-                Add Transport
+                {t('transports.add')}
               </Button>
             </form>
           </DialogContent>
@@ -213,7 +250,7 @@ export default function TripTransports() {
                   <div>
                     <CardTitle className="text-xl font-display font-bold">{transport.departure} → {transport.arrival}</CardTitle>
                     <Badge variant="secondary" className="bg-slate-100 text-slate-600 border-slate-200 uppercase text-[10px] tracking-wider mt-1">
-                      {transport.type}
+                      {t(`cat.${transport.type}`)}
                     </Badge>
                   </div>
                 </div>
@@ -230,7 +267,7 @@ export default function TripTransports() {
             <CardContent className="space-y-6 pb-6 pt-2">
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Départ</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('planning.departure')}</p>
                   <p className="text-sm font-semibold">{transport.departureTime.split('T')[0]}</p>
                   <p className="text-lg font-mono font-bold text-blue-600">{transport.departureTime.split('T')[1] || ''}</p>
                 </div>
@@ -242,7 +279,7 @@ export default function TripTransports() {
                   </div>
                 </div>
                 <div className="space-y-1 text-right">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Arrivée</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('planning.arrival')}</p>
                   <p className="text-sm font-semibold">{transport.arrivalTime.split('T')[0]}</p>
                   <p className="text-lg font-mono font-bold text-blue-600">{transport.arrivalTime.split('T')[1] || ''}</p>
                 </div>
@@ -250,12 +287,12 @@ export default function TripTransports() {
               
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Prix payé</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('transports.price')}</span>
                   <span className="text-xl font-display font-bold text-slate-900">{transport.price} {transport.currency}</span>
                 </div>
                 {transport.bookingReference && (
                   <div className="text-right">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter block leading-none">Référence</span>
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter block leading-none">{t('transports.bookingRef')}</span>
                     <span className="text-sm font-mono text-slate-600">{transport.bookingReference}</span>
                   </div>
                 )}
@@ -267,7 +304,7 @@ export default function TripTransports() {
 
       {transports.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No transports added yet</p>
+          <p className="text-gray-500">{t('transports.empty')}</p>
         </div>
       )}
     </div>
