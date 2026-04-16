@@ -5,7 +5,8 @@ import { api } from '../api/apiClient';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
 import { Input } from '../components/ui/input';
-import { AlertCircle, LogOut, Mail, User, Calendar, Save, Trash2, Camera } from 'lucide-react';
+import { AlertCircle, LogOut, Mail, User, Calendar, Save, Trash2, Camera, Globe } from 'lucide-react';
+import { useTranslation } from '../lib/LanguageContext';
 import { Alert, AlertDescription } from '../components/ui/alert';
 import {
   AlertDialog,
@@ -22,6 +23,7 @@ import { toast } from "../components/ui/use-toast";
 
 export default function Profile() {
   const { user, logout, isLoadingAuth } = useAuth();
+  const { lang, setLang, t } = useTranslation();
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -189,14 +191,45 @@ export default function Profile() {
                   <Calendar className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">Membre depuis</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.memberSince') || 'Membre depuis'}</p>
                   <p className="text-gray-900 font-medium lowercase">
-                    {new Date(user.created_at || Date.now()).toLocaleDateString('fr-FR', {
+                    {new Date(user.created_at || Date.now()).toLocaleDateString(lang === 'en' ? 'en-US' : 'fr-FR', {
                       year: 'numeric',
                       month: 'long',
                       day: 'numeric',
                     })}
                   </p>
+                </div>
+              </div>
+
+              {/* Language Selector */}
+              <div className="flex items-center gap-4 group mt-2 pt-2 border-t border-slate-100">
+                <div className="p-3 rounded-2xl bg-slate-100 text-slate-500 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
+                  <Globe className="w-5 h-5" />
+                </div>
+                <div className="flex-1 flex justify-between items-center">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-0.5">{t('profile.language') || 'Langue'}</p>
+                    <p className="text-gray-900 font-medium">{lang === 'fr' ? (t('profile.langFr') || 'Français') : (t('profile.langEn') || 'English')}</p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      variant={lang === 'fr' ? 'default' : 'outline'} 
+                      size="sm" 
+                      onClick={() => setLang('fr')}
+                      className={`rounded-xl ${lang === 'fr' ? 'bg-blue-600 hover:bg-blue-700' : 'text-slate-500 outline-slate-200 border-slate-200'} transition-all px-3`}
+                    >
+                      FR
+                    </Button>
+                    <Button 
+                      variant={lang === 'en' ? 'default' : 'outline'} 
+                      size="sm" 
+                      onClick={() => setLang('en')}
+                      className={`rounded-xl ${lang === 'en' ? 'bg-blue-600 hover:bg-blue-700' : 'text-slate-500 outline-slate-200 border-slate-200'} transition-all px-3`}
+                    >
+                      EN
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>

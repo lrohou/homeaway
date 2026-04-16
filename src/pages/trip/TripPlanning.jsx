@@ -77,7 +77,7 @@ export default function TripPlanning() {
     accommodations.forEach((acc) => {
       const checkInDate = acc.checkIn;
       const checkOutDate = acc.checkOut;
-      
+
       // Add check-in event
       items.push({
         id: `acc-checkin-${acc.id}`,
@@ -89,7 +89,7 @@ export default function TripPlanning() {
         location: acc.location,
         booking_reference: acc.bookingReference,
         price: acc.price,
-        notes: `Check-in at ${acc.name}. Address: ${acc.location}`,
+        notes: `Check-in at ${acc.name}`,
         _sourceType: "accommodation",
         _sourceId: acc.id,
       });
@@ -137,7 +137,7 @@ export default function TripPlanning() {
       const departTimeStr = format(departTime, "HH:mm");
 
       const transType = trans.type === "flight" ? "flight" : trans.type === "train" ? "train" : "transport";
-      
+
       items.push({
         id: `trans-${trans.id}`,
         trip_id: tripId,
@@ -212,7 +212,7 @@ export default function TripPlanning() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button
+          {/*<Button
             variant="outline"
             size="sm"
             className="gap-1.5"
@@ -229,79 +229,79 @@ export default function TripPlanning() {
             <Plus className="w-4 h-4" />
             Ajouter une étape
           </Button>
+        </div>*/}
         </div>
-      </div>
 
-      {/* Timeline by day */}
-      {stepsLoading || accLoading || actLoading || transLoading ? (
-        <div className="space-y-6">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="space-y-3">
-              <Skeleton className="h-6 w-40" />
-              <Skeleton className="h-24 w-full rounded-xl" />
-            </div>
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-8">
-          {dayGroups.map((group, gi) => (
-            <motion.div
-              key={group.dateStr}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: gi * 0.05 }}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <h3 className="font-display font-semibold text-lg text-foreground capitalize">
-                  {format(group.date, "EEEE d MMMM", { locale: fr })}
-                </h3>
-                {group.currentAccommodation && (
-                  <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 py-1">
-                    <BedDouble className="w-3.5 h-3.5" />
-                    {group.currentAccommodation.name}
-                  </Badge>
-                )}
-                <div className="flex-1 h-px bg-border" />
-                <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
-                  {group.steps.length} étape{group.steps.length !== 1 ? "s" : ""}
-                </span>
+        {/* Timeline by day */}
+        {stepsLoading || accLoading || actLoading || transLoading ? (
+          <div className="space-y-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-3">
+                <Skeleton className="h-6 w-40" />
+                <Skeleton className="h-24 w-full rounded-xl" />
               </div>
-
-              {group.steps.length === 0 ? (
-                <div className="text-sm text-muted-foreground pl-14 py-2">
-                  Aucune étape prévue
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {dayGroups.map((group, gi) => (
+              <motion.div
+                key={group.dateStr}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: gi * 0.05 }}
+              >
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="font-display font-semibold text-lg text-foreground capitalize">
+                    {format(group.date, "EEEE d MMMM", { locale: fr })}
+                  </h3>
+                  {group.currentAccommodation && (
+                    <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 py-1">
+                      <BedDouble className="w-3.5 h-3.5" />
+                      {group.currentAccommodation.name}
+                    </Badge>
+                  )}
+                  <div className="flex-1 h-px bg-border" />
+                  <span className="text-xs text-muted-foreground bg-secondary px-2.5 py-1 rounded-full">
+                    {group.steps.length} étape{group.steps.length !== 1 ? "s" : ""}
+                  </span>
                 </div>
-              ) : (
-                <div>
-                  {group.steps.map((step, si) => (
-                    <TimelineItem
-                      key={step.id}
-                      step={step}
-                      index={si}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          ))}
-        </div>
-      )}
 
-      <StepForm
-        open={showForm}
-        onOpenChange={setShowForm}
-        onSubmit={handleSubmit}
-        step={editingStep}
-        tripId={tripId}
-      />
+                {group.steps.length === 0 ? (
+                  <div className="text-sm text-muted-foreground pl-14 py-2">
+                    Aucune étape prévue
+                  </div>
+                ) : (
+                  <div>
+                    {group.steps.map((step, si) => (
+                      <TimelineItem
+                        key={step.id}
+                        step={step}
+                        index={si}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-      <DocumentUploadDialog
-        open={showUpload}
-        onOpenChange={setShowUpload}
-        tripId={tripId}
-      />
-    </div>
-  );
+        <StepForm
+          open={showForm}
+          onOpenChange={setShowForm}
+          onSubmit={handleSubmit}
+          step={editingStep}
+          tripId={tripId}
+        />
+
+        <DocumentUploadDialog
+          open={showUpload}
+          onOpenChange={setShowUpload}
+          tripId={tripId}
+        />
+      </div>
+      );
 }

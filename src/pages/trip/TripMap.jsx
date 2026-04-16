@@ -107,19 +107,20 @@ function createPopupHTML(item) {
         rel="noopener noreferrer"
         style="
           display: flex; align-items: center; justify-content: center; gap: 6px;
-          width: 100%; padding: 10px 0;
-          background: linear-gradient(135deg, ${cat.color}, ${cat.color}dd);
-          color: white; border: none; border-radius: 10px;
-          font-size: 13px; font-weight: 600;
+          width: 100%; padding: 8px 0;
+          background: ${cat.color}15;
+          color: ${cat.color};
+          border: 1px solid ${cat.color}30;
+          border-radius: 9999px;
+          font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
           text-decoration: none;
           cursor: pointer;
-          transition: opacity 0.2s;
-          box-shadow: 0 2px 8px ${cat.color}40;
+          transition: all 0.2s;
         "
-        onmouseover="this.style.opacity='0.9'"
-        onmouseout="this.style.opacity='1'"
+        onmouseover="this.style.background='${cat.color}25'"
+        onmouseout="this.style.background='${cat.color}15'"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="3 11 22 2 13 21 11 13 3 11"/>
         </svg>
         Y aller
@@ -304,9 +305,6 @@ export default function TripMap() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/20">
-            <MapPin className="w-5 h-5 text-white" />
-          </div>
           <div>
             <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
               Carte du voyage

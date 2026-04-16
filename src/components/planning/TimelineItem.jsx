@@ -51,9 +51,9 @@ export default function TimelineItem({ step, onEdit, onDelete, index }) {
               <h4 className="font-semibold text-foreground">{step.title}</h4>
               {step.location && (
                 <div className="flex items-center gap-3 mt-0.5">
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {step.location}
+                  <p className="text-sm text-muted-foreground flex items-center gap-1 min-w-0 flex-1" title={step.location}>
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    <span className="truncate">{step.location}</span>
                   </p>
                   <Button
                     variant="secondary"

@@ -33,6 +33,7 @@ export default function TripExpenses() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
+  const [showBalance, setShowBalance] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -177,18 +178,80 @@ export default function TripExpenses() {
     return bal;
   }, [allExpenses, trip, user]);
 
+  const tripMembers = useMemo(() => {
+    const m = [user?.email];
+    if (trip?.members) {
+      if (typeof trip.members[0] === "string") {
+        m.push(...trip.members);
+      } else {
+        m.push(...trip.members.map(x => x.email || x));
+      }
+    }
+    return [...new Set(m)].filter(Boolean);
+  }, [trip, user]);
+
+  const settlements = useMemo(() => {
+    const debtors = [];
+    const creditors = [];
+    
+    Object.entries(balances).forEach(([email, amount]) => {
+      if (amount > 0.01) creditors.push({ email, amount });
+      else if (amount < -0.01) debtors.push({ email, amount: Math.abs(amount) });
+    });
+
+    debtors.sort((a, b) => b.amount - a.amount);
+    creditors.sort((a, b) => b.amount - a.amount);
+
+    const results = [];
+    let d = 0, c = 0;
+
+    while (d < debtors.length && c < creditors.length) {
+      const debtor = debtors[d];
+      const creditor = creditors[c];
+      
+      const settled = Math.min(debtor.amount, creditor.amount);
+      
+      results.push({
+        from: debtor.email,
+        to: creditor.email,
+        amount: settled
+      });
+      
+      debtor.amount -= settled;
+      creditor.amount -= settled;
+      
+      if (debtor.amount < 0.01) d++;
+      if (creditor.amount < 0.01) c++;
+    }
+    
+    return results;
+  }, [balances]);
+
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold">Dépenses</h2>
-        <Button
-          size="sm"
-          className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
-          onClick={() => setShowAdd(true)}
-        >
-          <Plus className="w-4 h-4" />
-          Ajouter
-        </Button>
+        <div className="flex items-center gap-2">
+          {Object.keys(balances).length > 1 && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={() => setShowBalance(true)}
+            >
+              Équilibre
+            </Button>
+          )}
+          <Button
+            size="sm"
+            className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
+            onClick={() => setShowAdd(true)}
+          >
+            <Plus className="w-4 h-4" />
+            Ajouter
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -209,23 +272,6 @@ export default function TripExpenses() {
         </div>
       </div>
 
-      {/* Balances */}
-      {Object.keys(balances).length > 1 && (
-        <div className="bg-secondary/30 rounded-xl p-4 mb-6">
-          <h3 className="font-semibold text-sm mb-3">Équilibre des comptes</h3>
-          <div className="space-y-2">
-            {Object.entries(balances).map(([email, bal]) => (
-              <div key={email} className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">{email}</span>
-                <span className={`font-medium flex items-center gap-1 ${bal >= 0 ? "text-green-600" : "text-destructive"}`}>
-                  {bal >= 0 ? <ArrowUpRight className="w-3.5 h-3.5" /> : <ArrowDownLeft className="w-3.5 h-3.5" />}
-                  {Math.abs(bal).toFixed(2)}€
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
 
       {/* Expense list */}
       {isLoading ? (
@@ -325,10 +371,14 @@ export default function TripExpenses() {
               </div>
               <div className="space-y-2">
                 <Label>Payé par</Label>
-                <Input
-                  value={form.paid_by}
-                  onChange={(e) => setForm((f) => ({ ...f, paid_by: e.target.value }))}
-                />
+                <Select value={form.paid_by} onValueChange={(v) => setForm((f) => ({ ...f, paid_by: v }))}>
+                  <SelectTrigger><SelectValue placeholder="Sélectionnez un membre" /></SelectTrigger>
+                  <SelectContent>
+                    {tripMembers.map((email) => (
+                      <SelectItem key={email} value={email}>{email}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <Button
@@ -340,6 +390,52 @@ export default function TripExpenses() {
               Ajouter la dépense
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Balance Modal */}
+      <Dialog open={showBalance} onOpenChange={setShowBalance}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="font-display text-xl">Équilibre des comptes</DialogTitle>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            {settlements.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Tous les comptes sont à l'équilibre !</p>
+            ) : (
+              <div className="space-y-3">
+                {settlements.map((s, i) => (
+                  <div key={i} className="flex flex-col p-3 rounded-lg bg-secondary/30 border border-border">
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="text-sm font-medium">{s.from}</span>
+                        <span className="text-xs text-muted-foreground">doit rembourser à {s.to}</span>
+                      </div>
+                      <span className="font-bold text-base text-foreground">{s.amount.toFixed(2)}€</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            {Object.keys(balances).length > 0 && (
+              <div className="pt-4 border-t border-border mt-4">
+                <h4 className="text-sm font-semibold mb-2 text-foreground">Synthèse des soldes purs</h4>
+                <div className="space-y-1.5">
+                  {Object.entries(balances)
+                    .filter(([_, bal]) => Math.abs(bal) > 0.01)
+                    .map(([email, bal]) => (
+                    <div key={email} className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">{email}</span>
+                      <span className={bal >= 0 ? "text-green-600 font-medium" : "text-destructive font-medium"}>
+                        {bal > 0 ? "+" : ""}{bal.toFixed(2)}€
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </DialogContent>
       </Dialog>
     </div>

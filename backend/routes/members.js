@@ -59,12 +59,20 @@ router.post('/invite', authenticateToken, async (req, res) => {
       [tripId, email, token, role || 'viewer', 'pending', req.userId, expiresAt]
     );
 
+  // Fetch sender info
+    const senders = await query('SELECT name FROM users WHERE id = ?', [req.userId]);
+    const senderName = senders.length > 0 && senders[0].name ? senders[0].name : "Une personne";
+
+    // Fetch trip info
+    const trips = await query('SELECT title FROM trips WHERE id = ?', [tripId]);
+    const tripTitle = trips.length > 0 && trips[0].title ? trips[0].title : "un voyage";
+
     // Send email
     const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/join/${token}`;
     await sendEmail(
       email,
       'Invitation à rejoindre un voyage sur HomeAway',
-      `Vous avez été invité à rejoindre un voyage collaboratif : ${inviteLink}`,
+      `${senderName} vous a invité(e) à rejoindre un voyage collaboratif : ${inviteLink}`,
       `
       <div style="font-family: 'DM Sans', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #fcfbf7; color: #162136; border-radius: 16px;">
         <div style="text-align: center; margin-bottom: 30px;">
@@ -75,7 +83,7 @@ router.post('/invite', authenticateToken, async (req, res) => {
         <div style="background-color: #ffffff; padding: 40px; border-radius: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; border: 1px solid #eef0f2;">
           <h2 style="font-size: 24px; margin-bottom: 20px;">Nouvelle invitation !</h2>
           <p style="color: #4b5563; line-height: 1.6; margin-bottom: 30px;">
-            Une personne vous a invité(e) à participer à l'organisation de son prochain voyage sur HomeAway.
+            <b>${senderName}</b> vous a invité(e) à participer à l'organisation de son prochain voyage sur HomeAway pour le voyage : <b>"${tripTitle}"</b>.
           </p>
           
           <a href="${inviteLink}" style="display: inline-block; background-color: #f45d3d; color: #ffffff; padding: 16px 32px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(244, 93, 61, 0.3);">

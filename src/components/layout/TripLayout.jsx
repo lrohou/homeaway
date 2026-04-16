@@ -45,11 +45,21 @@ export default function TripLayout() {
       <div className="sticky top-0 z-40 -mx-4 px-4 bg-background/80 backdrop-blur-md border-b border-border/50 mb-6 sm:-mx-0 sm:px-0">
         <div className="py-3 px-1">
           {isLoading ? (
-            <Skeleton className="h-6 w-32 mb-1" />
+            <div className="space-y-1">
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-4 w-32" />
+            </div>
           ) : (
-            <h2 className="font-display text-lg font-bold text-foreground line-clamp-1">
-              {trip?.destination}
-            </h2>
+            <div>
+              <h2 className="font-display text-xl font-bold text-foreground truncate">
+                {trip?.title || "Chargement..."}
+              </h2>
+              {trip?.destination && (
+                <p className="text-sm text-muted-foreground truncate">
+                  {trip.destination}
+                </p>
+              )}
+            </div>
           )}
         </div>
         <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide">
