@@ -36,10 +36,10 @@ export default function TimelineItem({ step, onEdit, onDelete, index }) {
       </div>
 
       {/* Content */}
-      <div className="flex-1 pb-6">
-        <div className="bg-card border border-border rounded-xl p-4 hover:shadow-sm transition-shadow">
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
+      <div className="flex-1 pb-6 min-w-0">
+        <div className="bg-card border border-border rounded-xl p-4 hover:shadow-sm transition-shadow overflow-hidden">
+          <div className="flex items-start justify-between gap-3 overflow-hidden">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 mb-1">
                 {step.start_time && (
                   <span className="text-xs font-medium text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">

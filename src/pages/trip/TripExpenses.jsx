@@ -151,9 +151,9 @@ export default function TripExpenses() {
 
   // Balances
   const balances = useMemo(() => {
-    const members = new Set();
+    const tripMembers = [user?.email, ...(trip?.members || [])].filter(Boolean);
+    const members = new Set(tripMembers);
     allExpenses.forEach((e) => {
-      if (!e.isActivity) members.add(e.paid_by);
       e.split_between?.forEach((m) => members.add(m));
     });
     const bal = {};
@@ -235,7 +235,7 @@ export default function TripExpenses() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold">{t('expenses.title')}</h2>
         <div className="flex items-center gap-2">
-          {Object.keys(balances).length > 1 && (
+          {(trip?.members?.length > 0 || Object.keys(balances).length > 1) && (
             <Button
               variant="outline"
               size="sm"
