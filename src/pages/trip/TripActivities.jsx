@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiClient';
@@ -44,9 +44,6 @@ export default function TripActivities() {
     queryFn: () => api.activities.list(tripId),
   });
 
-  const React = require('react');
-  const { useMemo } = React;
-  
   const tripMembers = useMemo(() => {
     const m = [user?.email];
     if (trip?.members) {

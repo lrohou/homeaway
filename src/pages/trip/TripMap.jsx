@@ -27,32 +27,32 @@ const CATEGORIES = {
 function createMarkerElement(type) {
   const cat = CATEGORIES[type] || CATEGORIES.other;
   const el = document.createElement("div");
-  el.className = "trip-map-marker";
+  el.className = "trip-map-marker group";
   el.innerHTML = `
     <div style="
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: ${cat.color};
+      width: 44px;
+      height: 44px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, ${cat.color}, ${cat.color}ED);
       border: 3px solid white;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 0 2px ${cat.color}33;
+      box-shadow: 0 8px 16px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.4);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
+      font-size: 22px;
       cursor: pointer;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     ">
       ${cat.emoji}
     </div>
   `;
   el.addEventListener("mouseenter", () => {
-    el.firstElementChild.style.transform = "scale(1.2)";
-    el.firstElementChild.style.boxShadow = `0 6px 20px rgba(0,0,0,0.35), 0 0 0 3px ${cat.color}55`;
+    el.firstElementChild.style.transform = "translateY(-4px) scale(1.05)";
+    el.firstElementChild.style.boxShadow = `0 12px 24px ${cat.color}60, inset 0 2px 4px rgba(255,255,255,0.6)`;
   });
   el.addEventListener("mouseleave", () => {
-    el.firstElementChild.style.transform = "scale(1)";
-    el.firstElementChild.style.boxShadow = `0 4px 14px rgba(0,0,0,0.25), 0 0 0 2px ${cat.color}33`;
+    el.firstElementChild.style.transform = "translateY(0) scale(1)";
+    el.firstElementChild.style.boxShadow = `0 8px 16px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.4)`;
   });
   return el;
 }
@@ -62,38 +62,41 @@ function createPopupHTML(item, t) {
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
 
   return `
-    <div style="font-family: 'Inter', system-ui, sans-serif; min-width: 220px; max-width: 280px;">
-      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
-        <span style="
-          display: inline-flex; align-items: center; justify-content: center;
-          width: 32px; height: 32px; border-radius: 10px;
-          background: ${cat.color}18; font-size: 16px;
-        ">${cat.emoji}</span>
+    <div style="font-family: 'Inter', system-ui, sans-serif; min-width: 240px; max-width: 300px; padding: 4px;">
+      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+        <div style="
+          display: flex; align-items: center; justify-content: center;
+          width: 40px; height: 40px; border-radius: 12px;
+          background: linear-gradient(135deg, ${cat.color}20, ${cat.color}40); 
+          font-size: 20px;
+          border: 1px solid ${cat.color}30;
+          box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+        ">${cat.emoji}</div>
         <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+          <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
             ${item.label}
           </h4>
           <span style="
-            display: inline-block; margin-top: 2px; padding: 1px 8px;
-            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            display: inline-block; padding: 2px 10px;
+            font-size: 11px; font-weight: 700; text-transform: uppercase;
             letter-spacing: 0.5px; border-radius: 20px;
-            background: ${cat.color}15; color: ${cat.color};
-            border: 1px solid ${cat.color}30;
+            background: linear-gradient(135deg, ${cat.color}, ${cat.color}ED); color: white;
+            box-shadow: 0 2px 4px ${cat.color}30;
           ">${t(cat.key)}</span>
         </div>
       </div>
       ${item.location ? `
-        <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 10px; padding: 8px; background: #f8fafc; border-radius: 8px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+        <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; padding: 10px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          <span style="font-size: 11px; color: #64748b; line-height: 1.4; word-break: break-word;">${item.location}</span>
+          <span style="font-size: 12px; color: #475569; font-weight: 500; line-height: 1.5; word-break: break-word;">${item.location}</span>
         </div>
       ` : ''}
       ${item.date ? `
-        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 11px; color: #94a3b8;">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; color: #64748b; padding-left: 4px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/>
@@ -107,21 +110,22 @@ function createPopupHTML(item, t) {
         target="_blank"
         rel="noopener noreferrer"
         style="
-          display: flex; align-items: center; justify-content: center; gap: 6px;
-          width: 100%; padding: 8px 0;
-          background: ${cat.color}15;
-          color: ${cat.color};
-          border: 1px solid ${cat.color}30;
-          border-radius: 9999px;
-          font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;
+          display: flex; align-items: center; justify-content: center; gap: 8px;
+          width: 100%; padding: 10px 0;
+          background: linear-gradient(135deg, ${cat.color}, ${cat.color}ED);
+          color: white;
+          border: none;
+          box-shadow: 0 4px 12px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.3);
+          border-radius: 12px;
+          font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
           text-decoration: none;
           cursor: pointer;
           transition: all 0.2s;
         "
-        onmouseover="this.style.background='${cat.color}25'"
-        onmouseout="this.style.background='${cat.color}15'"
+        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px ${cat.color}50, inset 0 2px 4px rgba(255,255,255,0.4)';"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.3)';"
       >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="3 11 22 2 13 21 11 13 3 11"/>
         </svg>
         ${t('map.goThere')}
