@@ -39,7 +39,7 @@ router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
 
     const result = await run(
       `INSERT INTO trip_documents (trip_id, title, type, file_url, created_date)
-       VALUES (?, ?, ?, ?, datetime('now'))`,
+       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
       [tripId, title, type || 'other', fileUrl]
     );
 

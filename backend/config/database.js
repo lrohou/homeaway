@@ -197,35 +197,55 @@ export function getPool() {
   return pool;
 }
 
+/**
+ * Convertit les placeholders '?' de SQLite en '$1, $2...' de PostgreSQL
+ */
+function convertPlaceholders(sql) {
+  let count = 1;
+  return sql.replace(/\?/g, () => `$${count++}`);
+}
+
 export async function query(sql, params = []) {
   try {
-    const result = await pool.query(sql, params);
+    const finalSql = convertPlaceholders(sql);
+    const result = await pool.query(finalSql, params);
     return result.rows;
   } catch (error) {
     console.error('Database query error:', error.message);
+    console.error('SQL:', sql);
     throw error;
   }
 }
 
 export async function queryOne(sql, params = []) {
   try {
-    const result = await pool.query(sql, params);
+    const finalSql = convertPlaceholders(sql);
+    const result = await pool.query(finalSql, params);
     return result.rows[0] || null;
   } catch (error) {
     console.error('Database query error:', error.message);
+    console.error('SQL:', sql);
     throw error;
   }
 }
 
 export async function run(sql, params = []) {
   try {
-    const result = await pool.query(sql, params);
+    let finalSql = convertPlaceholders(sql);
+    
+    // Pour PostgreSQL, on ajoute RETURNING id sur les INSERT pour récupérer le lastID
+    if (finalSql.trim().toUpperCase().startsWith('INSERT') && !finalSql.toUpperCase().includes('RETURNING')) {
+      finalSql += ' RETURNING id';
+    }
+
+    const result = await pool.query(finalSql, params);
     return {
       lastID: result.rows[0]?.id || null,
       changes: result.rowCount
     };
   } catch (error) {
     console.error('Database run error:', error.message);
+    console.error('SQL:', sql);
     throw error;
   }
 }

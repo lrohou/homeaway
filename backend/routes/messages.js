@@ -31,7 +31,7 @@ router.post('/', authenticateToken, async (req, res) => {
 
     const result = await run(
       `INSERT INTO messages (trip_id, user_id, text, created_date)
-       VALUES (?, ?, ?, datetime('now'))`,
+       VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
       [tripId, req.userId, text]
     );
 
