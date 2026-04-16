@@ -50,6 +50,18 @@ export default function TripExpenses() {
     queryFn: () => api.trips.get(tripId),
   });
 
+  const tripMembers = useMemo(() => {
+    const m = [user?.email];
+    if (trip?.members) {
+      if (typeof trip.members[0] === "string") {
+        m.push(...trip.members);
+      } else {
+        m.push(...trip.members.map(x => x.email || x));
+      }
+    }
+    return [...new Set(m)].filter(Boolean);
+  }, [trip, user]);
+
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses", tripId],
     queryFn: () => api.expenses.list(tripId),
@@ -125,14 +137,13 @@ export default function TripExpenses() {
     e.preventDefault();
     setSaving(true);
     try {
-      const members = [user?.email, ...(trip?.members || [])].filter(Boolean);
       await api.expenses.create(tripId, {
         title: form.title,
         amount: Number(form.amount),
         category: form.category,
         date: form.date,
         paid_by: form.paid_by,
-        split_between: members,
+        split_between: tripMembers,
       });
       queryClient.invalidateQueries({ queryKey: ["expenses", tripId] });
       setShowAdd(false);
@@ -151,16 +162,14 @@ export default function TripExpenses() {
 
   // Balances
   const balances = useMemo(() => {
-    const tripMembers = [user?.email, ...(trip?.members || [])].filter(Boolean);
-    const members = new Set(tripMembers);
+    const membersList = new Set(tripMembers);
     allExpenses.forEach((e) => {
-      e.split_between?.forEach((m) => members.add(m));
+      e.split_between?.forEach((m) => membersList.add(m));
     });
     const bal = {};
-    members.forEach((m) => (bal[m] = 0));
+    membersList.forEach((m) => (bal[m] = 0));
     allExpenses.forEach((e) => {
       if (e.isActivity) {
-        const tripMembers = [user?.email, ...(trip?.members || [])].filter(Boolean);
         const splitCount = tripMembers.length || 1;
         const perPerson = e.amount / splitCount;
         tripMembers.forEach((m) => {
@@ -178,19 +187,7 @@ export default function TripExpenses() {
       }
     });
     return bal;
-  }, [allExpenses, trip, user]);
-
-  const tripMembers = useMemo(() => {
-    const m = [user?.email];
-    if (trip?.members) {
-      if (typeof trip.members[0] === "string") {
-        m.push(...trip.members);
-      } else {
-        m.push(...trip.members.map(x => x.email || x));
-      }
-    }
-    return [...new Set(m)].filter(Boolean);
-  }, [trip, user]);
+  }, [allExpenses, tripMembers]);
 
   const settlements = useMemo(() => {
     const debtors = [];
@@ -235,7 +232,7 @@ export default function TripExpenses() {
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-3xl font-bold">{t('expenses.title')}</h2>
         <div className="flex items-center gap-2">
-          {(trip?.members?.length > 0 || Object.keys(balances).length > 1) && (
+          {tripMembers.length > 1 && (
             <Button
               variant="outline"
               size="sm"
