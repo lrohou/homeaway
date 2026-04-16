@@ -126,7 +126,7 @@ router.post('/join/:token', authenticateToken, async (req, res) => {
     
     res.json({ message: 'Joined trip successfully', tripId: invite.trip_id });
   } catch (error) {
-    if (error.message.includes('UNIQUE constraint failed')) {
+    if (error.code === '23505' || error.message.includes('UNIQUE constraint failed') || error.message.includes('already a member')) {
       return res.status(400).json({ error: 'You are already a member of this trip' });
     }
     console.error('Join trip error:', error);

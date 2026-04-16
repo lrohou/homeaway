@@ -59,7 +59,17 @@ router.post('/', authenticateToken, async (req, res) => {
     const result = await run(
       `INSERT INTO trips (name, description, start_date, end_date, owner_id, location_lat, location_lng, location_name, budget)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, description, start_date, end_date, req.userId, location_lat, location_lng, location_name, budget]
+      [
+        name, 
+        description, 
+        start_date, 
+        end_date, 
+        req.userId, 
+        location_lat === "" ? null : location_lat, 
+        location_lng === "" ? null : location_lng, 
+        location_name, 
+        budget === "" ? null : budget
+      ]
     );
 
     const tripId = result.lastID;

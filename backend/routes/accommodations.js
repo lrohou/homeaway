@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const accommodations = await query(
-      'SELECT * FROM accommodations WHERE trip_id = ? ORDER BY checkIn',
+      'SELECT * FROM accommodations WHERE trip_id = ? ORDER BY "checkIn"',
       [tripId]
     );
     res.json(accommodations);
@@ -48,7 +48,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const result = await run(
-      `INSERT INTO accommodations (trip_id, name, location, checkIn, checkOut, price, currency, bookingReference)
+      `INSERT INTO accommodations (trip_id, name, location, "checkIn", "checkOut", price, currency, "bookingReference")
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [tripId, name, location, checkIn, checkOut, price || 0, currency || 'EUR', bookingReference]
     );
@@ -67,7 +67,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const { name, location, checkIn, checkOut, price, currency, bookingReference } = req.body;
 
     await run(
-      `UPDATE accommodations SET name = ?, location = ?, checkIn = ?, checkOut = ?, price = ?, currency = ?, bookingReference = ?
+      `UPDATE accommodations SET name = ?, location = ?, "checkIn" = ?, "checkOut" = ?, price = ?, currency = ?, "bookingReference" = ?
        WHERE id = ?`,
       [name, location, checkIn, checkOut, price, currency, bookingReference, id]
     );
