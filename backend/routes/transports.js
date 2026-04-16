@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const transports = await query(
-      'SELECT * FROM transports WHERE trip_id = ? ORDER BY "departureTime"',
+      'SELECT id, trip_id, type, departure, arrival, departuretime as "departureTime", arrivaltime as "arrivalTime", bookingreference as "bookingReference", price, latitude, longitude FROM transports WHERE trip_id = ? ORDER BY departuretime',
       [tripId]
     );
     res.json(transports);
@@ -24,7 +24,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { tripId, id } = req.params;
     const transports = await query(
-      'SELECT * FROM transports WHERE id = ? AND trip_id = ?',
+      'SELECT id, trip_id, type, departure, arrival, departuretime as "departureTime", arrivaltime as "arrivalTime", bookingreference as "bookingReference", price, latitude, longitude FROM transports WHERE id = ? AND trip_id = ?',
       [id, tripId]
     );
     if (transports.length === 0) {
@@ -48,7 +48,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const result = await run(
-      `INSERT INTO transports (trip_id, type, departure, arrival, "departureTime", "arrivalTime", "bookingReference", price)
+      `INSERT INTO transports (trip_id, type, departure, arrival, departuretime, arrivaltime, bookingreference, price)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [tripId, type, departure, arrival, departureTime, arrivalTime, bookingReference, price || 0]
     );
@@ -67,7 +67,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price } = req.body;
 
     await run(
-      `UPDATE transports SET type = ?, departure = ?, arrival = ?, "departureTime" = ?, "arrivalTime" = ?, "bookingReference" = ?, price = ?
+      `UPDATE transports SET type = ?, departure = ?, arrival = ?, departuretime = ?, arrivaltime = ?, bookingreference = ?, price = ?
        WHERE id = ?`,
       [type, departure, arrival, departureTime, arrivalTime, bookingReference, price, id]
     );

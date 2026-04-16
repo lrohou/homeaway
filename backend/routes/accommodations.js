@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const accommodations = await query(
-      'SELECT * FROM accommodations WHERE trip_id = ? ORDER BY "checkIn"',
+      'SELECT id, trip_id, name, location, checkin as "checkIn", checkout as "checkOut", price, currency, bookingreference as "bookingReference", latitude, longitude FROM accommodations WHERE trip_id = ? ORDER BY checkin',
       [tripId]
     );
     res.json(accommodations);
@@ -24,7 +24,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { tripId, id } = req.params;
     const accommodations = await query(
-      'SELECT * FROM accommodations WHERE id = ? AND trip_id = ?',
+      'SELECT id, trip_id, name, location, checkin as "checkIn", checkout as "checkOut", price, currency, bookingreference as "bookingReference", latitude, longitude FROM accommodations WHERE id = ? AND trip_id = ?',
       [id, tripId]
     );
     if (accommodations.length === 0) {
@@ -48,7 +48,7 @@ router.post('/', authenticateToken, async (req, res) => {
     }
 
     const result = await run(
-      `INSERT INTO accommodations (trip_id, name, location, "checkIn", "checkOut", price, currency, "bookingReference")
+      `INSERT INTO accommodations (trip_id, name, location, checkin, checkout, price, currency, bookingreference)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       [tripId, name, location, checkIn, checkOut, price || 0, currency || 'EUR', bookingReference]
     );
@@ -67,7 +67,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
     const { name, location, checkIn, checkOut, price, currency, bookingReference } = req.body;
 
     await run(
-      `UPDATE accommodations SET name = ?, location = ?, "checkIn" = ?, "checkOut" = ?, price = ?, currency = ?, "bookingReference" = ?
+      `UPDATE accommodations SET name = ?, location = ?, checkin = ?, checkout = ?, price = ?, currency = ?, bookingreference = ?
        WHERE id = ?`,
       [name, location, checkIn, checkOut, price, currency, bookingReference, id]
     );
