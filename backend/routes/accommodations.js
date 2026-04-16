@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const accommodations = await query(
-      'SELECT id, trip_id, name, location, checkin as "checkIn", checkout as "checkOut", price, currency, bookingreference as "bookingReference", latitude, longitude FROM accommodations WHERE trip_id = ? ORDER BY checkin',
+      'SELECT id, trip_id, name, location, checkin as "checkIn", checkout as "checkOut", price, currency, bookingreference as "bookingReference", latitude, longitude, paid_by FROM accommodations WHERE trip_id = ? ORDER BY checkin',
       [tripId]
     );
     res.json(accommodations);
@@ -24,7 +24,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { tripId, id } = req.params;
     const accommodations = await query(
-      'SELECT id, trip_id, name, location, checkin as "checkIn", checkout as "checkOut", price, currency, bookingreference as "bookingReference", latitude, longitude FROM accommodations WHERE id = ? AND trip_id = ?',
+      'SELECT id, trip_id, name, location, checkin as "checkIn", checkout as "checkOut", price, currency, bookingreference as "bookingReference", latitude, longitude, paid_by FROM accommodations WHERE id = ? AND trip_id = ?',
       [id, tripId]
     );
     if (accommodations.length === 0) {
@@ -41,16 +41,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
-    const { name, location, checkIn, checkOut, price, currency, bookingReference, latitude, longitude } = req.body;
+    const { name, location, checkIn, checkOut, price, currency, bookingReference, latitude, longitude, paid_by } = req.body;
 
     if (!name || !location || !checkIn || !checkOut) {
       return res.status(400).json({ error: 'Name, location, checkIn, and checkOut are required' });
     }
 
     const result = await run(
-      `INSERT INTO accommodations (trip_id, name, location, checkin, checkout, price, currency, bookingreference, latitude, longitude)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tripId, name, location, checkIn, checkOut, price || 0, currency || 'EUR', bookingReference, latitude || null, longitude || null]
+      `INSERT INTO accommodations (trip_id, name, location, checkin, checkout, price, currency, bookingreference, latitude, longitude, paid_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tripId, name, location, checkIn, checkOut, price || 0, currency || 'EUR', bookingReference, latitude || null, longitude || null, paid_by || null]
     );
 
     res.status(201).json({ id: result.lastID, message: 'Accommodation created' });
@@ -64,12 +64,12 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, location, checkIn, checkOut, price, currency, bookingReference, latitude, longitude } = req.body;
+    const { name, location, checkIn, checkOut, price, currency, bookingReference, latitude, longitude, paid_by } = req.body;
 
     await run(
-      `UPDATE accommodations SET name = ?, location = ?, checkin = ?, checkout = ?, price = ?, currency = ?, bookingreference = ?, latitude = ?, longitude = ?
+      `UPDATE accommodations SET name = ?, location = ?, checkin = ?, checkout = ?, price = ?, currency = ?, bookingreference = ?, latitude = ?, longitude = ?, paid_by = ?
        WHERE id = ?`,
-      [name, location, checkIn, checkOut, price, currency, bookingReference, latitude || null, longitude || null, id]
+      [name, location, checkIn, checkOut, price, currency, bookingReference, latitude || null, longitude || null, paid_by || null, id]
     );
 
     res.json({ message: 'Accommodation updated' });

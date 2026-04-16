@@ -52,11 +52,11 @@ export default function TripLayout() {
           ) : (
             <div>
               <h2 className="font-display text-xl font-bold text-foreground truncate">
-                {trip?.title || "Chargement..."}
+                {trip?.name || "Chargement..."}
               </h2>
-              {trip?.destination && (
+              {trip?.location_name && (
                 <p className="text-sm text-muted-foreground truncate">
-                  {trip.destination}
+                  {trip.location_name}
                 </p>
               )}
             </div>

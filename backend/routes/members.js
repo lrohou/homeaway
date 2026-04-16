@@ -64,8 +64,8 @@ router.post('/invite', authenticateToken, async (req, res) => {
     const senderName = senders.length > 0 && senders[0].name ? senders[0].name : "Une personne";
 
     // Fetch trip info
-    const trips = await query('SELECT title FROM trips WHERE id = ?', [tripId]);
-    const tripTitle = trips.length > 0 && trips[0].title ? trips[0].title : "un voyage";
+    const trips = await query('SELECT name FROM trips WHERE id = ?', [tripId]);
+    const tripTitle = trips.length > 0 && trips[0].name ? trips[0].name : "un voyage";
 
     // Send email
     const inviteLink = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/join/${token}`;

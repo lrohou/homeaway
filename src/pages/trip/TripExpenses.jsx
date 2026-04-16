@@ -77,7 +77,7 @@ export default function TripExpenses() {
         amount: Number(a.price),
         category: "activity",
         date: a.date,
-        paid_by: "Système (Automatique)",
+        paid_by: a.paid_by || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));
@@ -89,7 +89,7 @@ export default function TripExpenses() {
         amount: Number(t.price),
         category: "transport",
         date: t.departureTime || new Date().toISOString(),
-        paid_by: "Système (Automatique)",
+        paid_by: t.paid_by || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));
@@ -102,7 +102,7 @@ export default function TripExpenses() {
         amount: Number(a.price),
         category: "accommodation",
         date: a.checkIn || new Date().toISOString(),
-        paid_by: "Système (Automatique)",
+        paid_by: a.paid_by || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));

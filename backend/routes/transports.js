@@ -9,7 +9,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const transports = await query(
-      'SELECT id, trip_id, type, departure, arrival, departuretime as "departureTime", arrivaltime as "arrivalTime", bookingreference as "bookingReference", price, latitude, longitude FROM transports WHERE trip_id = ? ORDER BY departuretime',
+      'SELECT id, trip_id, type, departure, arrival, departuretime as "departureTime", arrivaltime as "arrivalTime", bookingreference as "bookingReference", price, latitude, longitude, paid_by FROM transports WHERE trip_id = ? ORDER BY departuretime',
       [tripId]
     );
     res.json(transports);
@@ -24,7 +24,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { tripId, id } = req.params;
     const transports = await query(
-      'SELECT id, trip_id, type, departure, arrival, departuretime as "departureTime", arrivaltime as "arrivalTime", bookingreference as "bookingReference", price, latitude, longitude FROM transports WHERE id = ? AND trip_id = ?',
+      'SELECT id, trip_id, type, departure, arrival, departuretime as "departureTime", arrivaltime as "arrivalTime", bookingreference as "bookingReference", price, latitude, longitude, paid_by FROM transports WHERE id = ? AND trip_id = ?',
       [id, tripId]
     );
     if (transports.length === 0) {
@@ -41,16 +41,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
-    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude, longitude } = req.body;
+    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude, longitude, paid_by } = req.body;
 
     if (!type || !departure || !arrival) {
       return res.status(400).json({ error: 'Type, departure, and arrival are required' });
     }
 
     const result = await run(
-      `INSERT INTO transports (trip_id, type, departure, arrival, departuretime, arrivaltime, bookingreference, price, latitude, longitude)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tripId, type, departure, arrival, departureTime, arrivalTime, bookingReference, price || 0, latitude || null, longitude || null]
+      `INSERT INTO transports (trip_id, type, departure, arrival, departuretime, arrivaltime, bookingreference, price, latitude, longitude, paid_by)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tripId, type, departure, arrival, departureTime, arrivalTime, bookingReference, price || 0, latitude || null, longitude || null, paid_by || null]
     );
 
     res.status(201).json({ id: result.lastID, message: 'Transport created' });
@@ -64,12 +64,12 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude, longitude } = req.body;
+    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude, longitude, paid_by } = req.body;
 
     await run(
-      `UPDATE transports SET type = ?, departure = ?, arrival = ?, departuretime = ?, arrivaltime = ?, bookingreference = ?, price = ?, latitude = ?, longitude = ?
+      `UPDATE transports SET type = ?, departure = ?, arrival = ?, departuretime = ?, arrivaltime = ?, bookingreference = ?, price = ?, latitude = ?, longitude = ?, paid_by = ?
        WHERE id = ?`,
-      [type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude || null, longitude || null, id]
+      [type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude || null, longitude || null, paid_by || null, id]
     );
 
     res.json({ message: 'Transport updated' });
