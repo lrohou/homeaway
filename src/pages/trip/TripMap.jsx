@@ -62,41 +62,57 @@ function createPopupHTML(item, t) {
   const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
 
   return `
-    <div style="font-family: 'Inter', system-ui, sans-serif; min-width: 240px; max-width: 300px; padding: 4px;">
-      <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+    <div style="
+      font-family: 'DM Sans', sans-serif; 
+      min-width: 260px; 
+      max-width: 320px; 
+      padding: 12px;
+      color: #1e293b;
+    ">
+      <div style="display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px;">
         <div style="
           display: flex; align-items: center; justify-content: center;
-          width: 40px; height: 40px; border-radius: 12px;
-          background: linear-gradient(135deg, ${cat.color}20, ${cat.color}40); 
-          font-size: 20px;
-          border: 1px solid ${cat.color}30;
-          box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+          width: 48px; height: 48px; border-radius: 14px;
+          background: linear-gradient(135deg, ${cat.color}15, ${cat.color}25); 
+          font-size: 24px;
+          border: 1px solid ${cat.color}20;
+          box-shadow: inset 0 2px 4px rgba(255,255,255,0.8);
+          flex-shrink: 0;
         ">${cat.emoji}</div>
-        <div style="flex: 1; min-width: 0;">
-          <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 800; color: #0f172a; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+        <div style="flex: 1; min-width: 0; padding-top: 2px;">
+          <h4 style="margin: 0 0 6px 0; font-size: 17px; font-weight: 800; color: #0f172a; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">
             ${item.label}
           </h4>
           <span style="
-            display: inline-block; padding: 2px 10px;
-            font-size: 11px; font-weight: 700; text-transform: uppercase;
-            letter-spacing: 0.5px; border-radius: 20px;
-            background: linear-gradient(135deg, ${cat.color}, ${cat.color}ED); color: white;
-            box-shadow: 0 2px 4px ${cat.color}30;
+            display: inline-flex; align-items: center; padding: 3px 12px;
+            font-size: 10px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.8px; border-radius: 20px;
+            background: linear-gradient(135deg, ${cat.color}, ${cat.color}DA); 
+            color: white;
+            box-shadow: 0 4px 10px ${cat.color}30;
           ">${t(cat.key)}</span>
         </div>
       </div>
+
       ${item.location ? `
-        <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 12px; padding: 10px; background: #f8fafc; border-radius: 12px; border: 1px solid #e2e8f0;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+        <div style="
+          display: flex; align-items: flex-start; gap: 10px; 
+          margin-bottom: 14px; padding: 12px; 
+          background: #f8fafc; border-radius: 14px; 
+          border: 1px solid #e2e8f0;
+          box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="${cat.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px; opacity: 0.8;">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
             <circle cx="12" cy="10" r="3"/>
           </svg>
-          <span style="font-size: 12px; color: #475569; font-weight: 500; line-height: 1.5; word-break: break-word;">${item.location}</span>
+          <span style="font-size: 12.5px; color: #475569; font-weight: 500; line-height: 1.5; word-break: break-word;">${item.location}</span>
         </div>
       ` : ''}
+
       ${item.date ? `
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; color: #64748b; padding-left: 4px;">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px; font-size: 14px; font-weight: 700; color: #64748b; padding-left: 6px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity: 0.7;">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/>
@@ -105,27 +121,28 @@ function createPopupHTML(item, t) {
           ${item.date}
         </div>
       ` : ''}
+
       <a
         href="${googleMapsUrl}"
         target="_blank"
         rel="noopener noreferrer"
         style="
-          display: flex; align-items: center; justify-content: center; gap: 8px;
-          width: 100%; padding: 10px 0;
-          background: linear-gradient(135deg, ${cat.color}, ${cat.color}ED);
+          display: flex; align-items: center; justify-content: center; gap: 10px;
+          width: 100%; padding: 12px 0;
+          background: linear-gradient(135deg, ${cat.color}, ${cat.color}DA);
           color: white;
           border: none;
-          box-shadow: 0 4px 12px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.3);
-          border-radius: 12px;
-          font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+          box-shadow: 0 6px 15px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.3);
+          border-radius: 14px;
+          font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
           text-decoration: none;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         "
-        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 16px ${cat.color}50, inset 0 2px 4px rgba(255,255,255,0.4)';"
-        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.3)';"
+        onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 10px 20px ${cat.color}50, inset 0 2px 4px rgba(255,255,255,0.4)';"
+        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 15px ${cat.color}40, inset 0 2px 4px rgba(255,255,255,0.3)';"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <polygon points="3 11 22 2 13 21 11 13 3 11"/>
         </svg>
         ${t('map.goThere')}
@@ -291,7 +308,7 @@ export default function TripMap() {
       maxZoom: 14,
       duration: 1000,
     });
-  }, [allGeoItems, mapLoaded]);
+  }, [allGeoItems, mapLoaded, t]);
 
   const isLoading = stepsLoading || accLoading || actLoading || transLoading;
 

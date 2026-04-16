@@ -71,7 +71,7 @@ export default function TripExpenses() {
   });
 
   const allExpenses = useMemo(() => {
-    const actExp = activities
+    const actExp = (activities || [])
       .filter((a) => a.price > 0)
       .map((a) => ({
         id: `act_${a.id}`,
@@ -83,20 +83,20 @@ export default function TripExpenses() {
         split_between: [],
         isActivity: true
       }));
-    const transExp = transports
-      .filter((t) => t.price > 0)
-      .map((t) => ({
-        id: `trans_${t.id}`,
-        title: `${t('cat.transport')} : ${t.type} → ${t.arrival}`,
-        amount: Number(t.price),
+    const transExp = (transports || [])
+      .filter((tr) => tr.price > 0)
+      .map((tr) => ({
+        id: `trans_${tr.id}`,
+        title: `${t('cat.transport')} : ${t(`cat.${tr.type}`) || tr.type} → ${tr.arrival}`,
+        amount: Number(tr.price),
         category: "transport",
-        date: t.departureTime || new Date().toISOString(),
-        paid_by: t.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
+        date: tr.departureTime || new Date().toISOString(),
+        paid_by: tr.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
         split_between: [],
         isActivity: true
       }));
 
-    const accExp = accommodations
+    const accExp = (accommodations || [])
       .filter((a) => a.price > 0)
       .map((a) => ({
         id: `acc_${a.id}`,
@@ -109,12 +109,12 @@ export default function TripExpenses() {
         isActivity: true
       }));
 
-    return [...expenses, ...actExp, ...transExp, ...accExp].sort((a, b) => {
+    return [...(expenses || []), ...actExp, ...transExp, ...accExp].sort((a, b) => {
       const db = new Date(b.date || 0);
       const da = new Date(a.date || 0);
       return db - da;
     });
-  }, [expenses, activities, transports, accommodations]);
+  }, [expenses, activities, transports, accommodations, t]);
 
   const deleteMutation = useMutation({
     mutationFn: (id) => api.expenses.delete(id),

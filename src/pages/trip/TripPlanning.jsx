@@ -85,31 +85,30 @@ export default function TripPlanning() {
         id: `acc-checkin-${acc.id}`,
         trip_id: tripId,
         type: "hotel",
-        title: `Check-in: ${acc.name}`,
+        title: `${t('planning.checkin') || 'Check-in'}: ${acc.name}`,
         date: checkInDate,
         start_time: "10:00",
         location: acc.location,
         booking_reference: acc.bookingReference,
         price: acc.price,
-        notes: `Check-in at ${acc.name}`,
+        notes: `${t('planning.checkinAt') || 'Check-in at'} ${acc.name}`,
         _sourceType: "accommodation",
         _sourceId: acc.id,
       });
 
       // Add check-out event on last day
-      const checkOutDate_adjusted = new Date(checkOutDate);
-      checkOutDate_adjusted.setDate(checkOutDate_adjusted.getDate() - 1);
+      // Add check-out event
       items.push({
         id: `acc-checkout-${acc.id}`,
         trip_id: tripId,
         type: "hotel",
-        title: `Check-out: ${acc.name}`,
-        date: format(checkOutDate_adjusted, "yyyy-MM-dd"),
+        title: `${t('planning.checkout') || 'Check-out'}: ${acc.name}`,
+        date: checkOutDate,
         start_time: "11:00",
         location: acc.location,
         booking_reference: acc.bookingReference,
-        price: null,
-        notes: `Check-out from ${acc.name}`,
+        price: 0,
+        notes: `${t('planning.checkoutAt') || 'Check-out at'} ${acc.name}`,
         _sourceType: "accommodation",
         _sourceId: acc.id,
       });
@@ -138,26 +137,24 @@ export default function TripPlanning() {
       const departDate = format(departTime, "yyyy-MM-dd");
       const departTimeStr = format(departTime, "HH:mm");
 
-      const transType = trans.type === "flight" ? "flight" : trans.type === "train" ? "train" : "transport";
-
       items.push({
-        id: `trans-${trans.id}`,
+        id: `trans-dep-${trans.id}`,
         trip_id: tripId,
-        type: transType,
-        title: `${trans.departure} → ${trans.arrival}`.toUpperCase(),
+        type: trans.type || "transport",
+        title: `${t('planning.departure')}: ${trans.departure} → ${trans.arrival}`,
         date: departDate,
         start_time: departTimeStr,
         location: trans.departure,
         booking_reference: trans.bookingReference,
         price: trans.price,
-        notes: `Arrival: ${trans.arrival} at ${format(new Date(trans.arrivalTime), "HH:mm")}`,
+        notes: `${t('planning.arrival')}: ${trans.arrival} at ${format(new Date(trans.arrivalTime), "HH:mm")}`,
         _sourceType: "transport",
         _sourceId: trans.id,
       });
     });
 
     return items;
-  }, [steps, accommodations, activities, transports, tripId]);
+  }, [steps, accommodations, activities, transports, tripId, t]);
 
   // Group all items (steps + bookings) by day
   const dayGroups = useMemo(() => {
