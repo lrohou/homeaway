@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, MapPin, DollarSign, CalendarDays, Trash2 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 
 export default function TripAccommodations() {
   const { tripId } = useParams();
@@ -102,13 +103,11 @@ export default function TripAccommodations() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="location">Location</Label>
-                <Input
-                  id="location"
-                  value={formData.location}
-                  onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                  placeholder="Address"
-                  required
+                <Label htmlFor="location">Adresse</Label>
+                <AddressAutocomplete
+                  defaultValue={formData.location}
+                  placeholder="Rechercher l'adresse du logement..."
+                  onSelect={({ address, lat, lng }) => setFormData({ ...formData, location: address, latitude: lat, longitude: lng })}
                 />
               </div>
               <div className="grid grid-cols-2 gap-4">

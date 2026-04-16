@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Calendar, Clock, MapPin, Trash2, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 
 export default function TripActivities() {
   const { tripId } = useParams();
@@ -23,7 +24,8 @@ export default function TripActivities() {
     currency: 'EUR',
     latitude: '',
     longitude: '',
-    description: ''
+    description: '',
+    location: ''
   });
 
   const { data: trip } = useQuery({
@@ -50,7 +52,8 @@ export default function TripActivities() {
         currency: 'EUR',
         latitude: '',
         longitude: '',
-        description: ''
+        description: '',
+        location: ''
       });
     }
   });
@@ -67,7 +70,8 @@ export default function TripActivities() {
       price: formData.price ? parseFloat(formData.price) : 0,
       duration: formData.duration ? parseInt(formData.duration) : 60,
       latitude: formData.latitude ? parseFloat(formData.latitude) : 0,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : 0
+      longitude: formData.longitude ? parseFloat(formData.longitude) : 0,
+      location: formData.location || ''
     });
   };
 
@@ -152,6 +156,14 @@ export default function TripActivities() {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="actLocation">Lieu</Label>
+                <AddressAutocomplete
+                  defaultValue={formData.location}
+                  placeholder="Rechercher l'adresse de l'activité..."
+                  onSelect={({ address, lat, lng }) => setFormData({ ...formData, location: address, latitude: lat, longitude: lng })}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>

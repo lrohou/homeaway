@@ -164,7 +164,8 @@ export async function createTables() {
       price REAL,
       description TEXT,
       latitude REAL,
-      longitude REAL
+      longitude REAL,
+      location TEXT
     )`,
 
     `CREATE TABLE IF NOT EXISTS transports (

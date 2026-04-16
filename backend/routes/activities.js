@@ -41,16 +41,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
-    const { name, date, time, duration, price, description } = req.body;
+    const { name, date, time, duration, price, description, latitude, longitude, location } = req.body;
 
     if (!name || !date) {
       return res.status(400).json({ error: 'Name and date are required' });
     }
 
     const result = await run(
-      `INSERT INTO activities (trip_id, name, date, time, duration, price, description)
-       VALUES (?, ?, ?, ?, ?, ?, ?)`,
-      [tripId, name, date, time, duration || 60, price || 0, description]
+      `INSERT INTO activities (trip_id, name, date, time, duration, price, description, latitude, longitude, location)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tripId, name, date, time, duration || 60, price || 0, description, latitude || null, longitude || null, location || null]
     );
 
     res.status(201).json({ id: result.lastID, message: 'Activity created' });
@@ -64,12 +64,12 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, date, time, duration, price, description } = req.body;
+    const { name, date, time, duration, price, description, latitude, longitude, location } = req.body;
 
     await run(
-      `UPDATE activities SET name = ?, date = ?, time = ?, duration = ?, price = ?, description = ?
+      `UPDATE activities SET name = ?, date = ?, time = ?, duration = ?, price = ?, description = ?, latitude = ?, longitude = ?, location = ?
        WHERE id = ?`,
-      [name, date, time, duration, price, description, id]
+      [name, date, time, duration, price, description, latitude || null, longitude || null, location || null, id]
     );
 
     res.json({ message: 'Activity updated' });

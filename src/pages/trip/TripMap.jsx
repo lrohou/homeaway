@@ -1,29 +1,139 @@
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useRef, useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
-import { MapContainer, TileLayer, Marker, Popup, Polyline } from "react-leaflet";
-import { Plane, Train, BedDouble, Utensils, MapPin, Car, Clock, Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon } from "lucide-react";
+import maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
 
-// Fix Leaflet default icon
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
-  iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png",
-  shadowUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
-});
+const MAPTILER_STYLE = "https://api.maptiler.com/maps/019d9665-0270-7b06-bf41-907c11a5295a/style.json?key=FZ6exJZ6JibveJODuzvj";
 
-const typeLabels = {
-  flight: "Vol", train: "Train", hotel: "Hôtel",
-  restaurant: "Restaurant", activity: "Activité", transport: "Transport", other: "Autre",
+// Category config: color, emoji, label
+const CATEGORIES = {
+  hotel: { color: "#10b981", emoji: "🏠", label: "Logement", gradient: "from-emerald-400 to-teal-500" },
+  activity: { color: "#f59e0b", emoji: "🎯", label: "Activité", gradient: "from-amber-400 to-orange-500" },
+  flight: { color: "#3b82f6", emoji: "✈️", label: "Vol", gradient: "from-blue-400 to-indigo-500" },
+  train: { color: "#6366f1", emoji: "🚆", label: "Train", gradient: "from-indigo-400 to-violet-500" },
+  bus: { color: "#8b5cf6", emoji: "🚌", label: "Bus", gradient: "from-violet-400 to-purple-500" },
+  car: { color: "#ec4899", emoji: "🚗", label: "Voiture", gradient: "from-pink-400 to-rose-500" },
+  transport: { color: "#6366f1", emoji: "🚀", label: "Transport", gradient: "from-indigo-400 to-violet-500" },
+  step: { color: "#a855f7", emoji: "📍", label: "Étape", gradient: "from-purple-400 to-fuchsia-500" },
+  other: { color: "#64748b", emoji: "📌", label: "Autre", gradient: "from-slate-400 to-gray-500" },
 };
+
+function createMarkerElement(type) {
+  const cat = CATEGORIES[type] || CATEGORIES.other;
+  const el = document.createElement("div");
+  el.className = "trip-map-marker";
+  el.innerHTML = `
+    <div style="
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: ${cat.color};
+      border: 3px solid white;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25), 0 0 0 2px ${cat.color}33;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    ">
+      ${cat.emoji}
+    </div>
+  `;
+  el.addEventListener("mouseenter", () => {
+    el.firstElementChild.style.transform = "scale(1.2)";
+    el.firstElementChild.style.boxShadow = `0 6px 20px rgba(0,0,0,0.35), 0 0 0 3px ${cat.color}55`;
+  });
+  el.addEventListener("mouseleave", () => {
+    el.firstElementChild.style.transform = "scale(1)";
+    el.firstElementChild.style.boxShadow = `0 4px 14px rgba(0,0,0,0.25), 0 0 0 2px ${cat.color}33`;
+  });
+  return el;
+}
+
+function createPopupHTML(item) {
+  const cat = CATEGORIES[item.type] || CATEGORIES.other;
+  const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`;
+
+  return `
+    <div style="font-family: 'Inter', system-ui, sans-serif; min-width: 220px; max-width: 280px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 10px;">
+        <span style="
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 32px; height: 32px; border-radius: 10px;
+          background: ${cat.color}18; font-size: 16px;
+        ">${cat.emoji}</span>
+        <div style="flex: 1; min-width: 0;">
+          <h4 style="margin: 0; font-size: 14px; font-weight: 700; color: #1e293b; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+            ${item.label}
+          </h4>
+          <span style="
+            display: inline-block; margin-top: 2px; padding: 1px 8px;
+            font-size: 10px; font-weight: 600; text-transform: uppercase;
+            letter-spacing: 0.5px; border-radius: 20px;
+            background: ${cat.color}15; color: ${cat.color};
+            border: 1px solid ${cat.color}30;
+          ">${cat.label}</span>
+        </div>
+      </div>
+      ${item.location ? `
+        <div style="display: flex; align-items: flex-start; gap: 6px; margin-bottom: 10px; padding: 8px; background: #f8fafc; border-radius: 8px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+            <circle cx="12" cy="10" r="3"/>
+          </svg>
+          <span style="font-size: 11px; color: #64748b; line-height: 1.4; word-break: break-word;">${item.location}</span>
+        </div>
+      ` : ''}
+      ${item.date ? `
+        <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px; font-size: 11px; color: #94a3b8;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+            <line x1="16" y1="2" x2="16" y2="6"/>
+            <line x1="8" y1="2" x2="8" y2="6"/>
+            <line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          ${item.date}
+        </div>
+      ` : ''}
+      <a
+        href="${googleMapsUrl}"
+        target="_blank"
+        rel="noopener noreferrer"
+        style="
+          display: flex; align-items: center; justify-content: center; gap: 6px;
+          width: 100%; padding: 10px 0;
+          background: linear-gradient(135deg, ${cat.color}, ${cat.color}dd);
+          color: white; border: none; border-radius: 10px;
+          font-size: 13px; font-weight: 600;
+          text-decoration: none;
+          cursor: pointer;
+          transition: opacity 0.2s;
+          box-shadow: 0 2px 8px ${cat.color}40;
+        "
+        onmouseover="this.style.opacity='0.9'"
+        onmouseout="this.style.opacity='1'"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="3 11 22 2 13 21 11 13 3 11"/>
+        </svg>
+        Y aller
+      </a>
+    </div>
+  `;
+}
 
 export default function TripMap() {
   const { tripId } = useParams();
+  const mapContainerRef = useRef(null);
+  const mapRef = useRef(null);
+  const markersRef = useRef([]);
+  const [mapLoaded, setMapLoaded] = useState(false);
 
   const { data: steps = [], isLoading: stepsLoading } = useQuery({
     queryKey: ["steps", tripId],
@@ -48,101 +158,220 @@ export default function TripMap() {
   const allGeoItems = useMemo(() => {
     const items = [];
 
-    steps.forEach(s => {
+    steps.forEach((s) => {
       if (s.latitude && s.longitude) {
-        items.push({ ...s, type: s.type || 'other', label: s.title });
+        items.push({ ...s, type: "step", label: s.title, location: s.location });
       }
     });
 
-    accommodations.forEach(acc => {
+    accommodations.forEach((acc) => {
       if (acc.latitude && acc.longitude) {
-        items.push({ ...acc, type: 'hotel', label: acc.name, id: `acc-${acc.id}` });
+        items.push({
+          ...acc,
+          type: "hotel",
+          label: acc.name,
+          id: `acc-${acc.id}`,
+          location: acc.location,
+          date: acc.checkIn,
+        });
       }
     });
 
-    activities.forEach(act => {
+    activities.forEach((act) => {
       if (act.latitude && act.longitude) {
-        items.push({ ...act, type: 'activity', label: act.name, id: `act-${act.id}` });
+        items.push({
+          ...act,
+          type: "activity",
+          label: act.name,
+          id: `act-${act.id}`,
+          location: act.location,
+          date: act.date,
+        });
       }
     });
 
-    transports.forEach(t => {
+    transports.forEach((t) => {
       if (t.latitude && t.longitude) {
-        items.push({ ...t, type: t.type || 'transport', label: `${t.departure} → ${t.arrival}`, id: `trans-${t.id}` });
+        items.push({
+          ...t,
+          type: t.type || "transport",
+          label: `${t.departure} → ${t.arrival}`,
+          id: `trans-${t.id}`,
+          date: t.departureTime?.split("T")[0],
+        });
       }
     });
 
     return items;
   }, [steps, accommodations, activities, transports]);
 
-  const center = useMemo(() => {
-    if (allGeoItems.length === 0) return [48.8566, 2.3522]; // Default Paris
-    const avgLat = allGeoItems.reduce((s, st) => s + st.latitude, 0) / allGeoItems.length;
-    const avgLng = allGeoItems.reduce((s, st) => s + st.longitude, 0) / allGeoItems.length;
-    return [avgLat, avgLng];
+  // Count items per category for the legend
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    allGeoItems.forEach((item) => {
+      const type = item.type || "other";
+      counts[type] = (counts[type] || 0) + 1;
+    });
+    return counts;
   }, [allGeoItems]);
 
-  if (stepsLoading || accLoading || actLoading || transLoading) {
+  // Initialize map
+  useEffect(() => {
+    if (!mapContainerRef.current || mapRef.current) return;
+
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: MAPTILER_STYLE,
+      center: [2.3522, 48.8566], // Default Paris
+      zoom: 4,
+      attributionControl: false,
+    });
+
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
+    map.addControl(
+      new maplibregl.AttributionControl({ compact: true }),
+      "bottom-left"
+    );
+
+    map.on("load", () => {
+      setMapLoaded(true);
+    });
+
+    mapRef.current = map;
+
+    return () => {
+      map.remove();
+      mapRef.current = null;
+      setMapLoaded(false);
+    };
+  }, []);
+
+  // Update markers when data changes
+  useEffect(() => {
+    if (!mapRef.current || !mapLoaded) return;
+
+    // Clear existing markers
+    markersRef.current.forEach((m) => m.remove());
+    markersRef.current = [];
+
+    if (allGeoItems.length === 0) return;
+
+    const bounds = new maplibregl.LngLatBounds();
+
+    allGeoItems.forEach((item) => {
+      const el = createMarkerElement(item.type);
+
+      const popup = new maplibregl.Popup({
+        offset: 25,
+        closeButton: true,
+        closeOnClick: false,
+        maxWidth: "300px",
+        className: "trip-map-popup",
+      }).setHTML(createPopupHTML(item));
+
+      const marker = new maplibregl.Marker({ element: el })
+        .setLngLat([item.longitude, item.latitude])
+        .setPopup(popup)
+        .addTo(mapRef.current);
+
+      markersRef.current.push(marker);
+      bounds.extend([item.longitude, item.latitude]);
+    });
+
+    // Fit bounds with padding
+    mapRef.current.fitBounds(bounds, {
+      padding: { top: 60, bottom: 60, left: 60, right: 60 },
+      maxZoom: 14,
+      duration: 1000,
+    });
+  }, [allGeoItems, mapLoaded]);
+
+  const isLoading = stepsLoading || accLoading || actLoading || transLoading;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+          <p className="text-sm text-muted-foreground">Chargement de la carte...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold">Carte du voyage</h2>
-        <Badge variant="secondary" className="gap-1.5 py-1 px-3">
-          <MapPin className="w-3.5 h-3.5" />
-          {allGeoItems.length} destinations
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg shadow-blue-500/20">
+            <MapPin className="w-5 h-5 text-white" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
+              Carte du voyage
+            </h2>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Tous vos lieux sur une seule carte interactive
+            </p>
+          </div>
+        </div>
+        <Badge
+          variant="secondary"
+          className="gap-1.5 py-1.5 px-4 bg-slate-100 text-slate-700 border border-slate-200 font-semibold"
+        >
+          <Navigation className="w-3.5 h-3.5" />
+          {allGeoItems.length} {allGeoItems.length > 1 ? "lieux" : "lieu"}
         </Badge>
       </div>
 
-      <div className="rounded-2xl overflow-hidden border border-border h-[500px] sm:h-[650px] shadow-lg">
-        <MapContainer
-          center={center}
-          zoom={allGeoItems.length > 0 ? 6 : 5}
-          className="h-full w-full"
-          scrollWheelZoom={true}
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {allGeoItems.map((item) => (
-            <Marker key={item.id} position={[item.latitude, item.longitude]}>
-              <Popup>
-                <div className="p-1 max-w-[200px]">
-                  <h4 className="font-bold text-sm mb-1">{item.label}</h4>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-2">
-                    <Badge variant="outline" className="capitalize text-[10px] h-4">
-                      {typeLabels[item.type] || item.type}
-                    </Badge>
-                    {item.date && <span>· {item.date}</span>}
-                  </div>
-                  {item.location && <p className="text-xs italic mb-2">{item.location}</p>}
-                  <a
-                    href={`https://www.google.com/maps/dir/?api=1&destination=${item.latitude},${item.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block w-full text-center py-1.5 bg-primary text-primary-foreground rounded-md text-[10px] font-medium hover:bg-primary/90 transition-colors"
+      {/* Map Container */}
+      <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50">
+        <div
+          ref={mapContainerRef}
+          className="h-[500px] sm:h-[650px] w-full"
+          style={{ minHeight: "400px" }}
+        />
+
+        {/* Legend overlay */}
+        {Object.keys(categoryCounts).length > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit">
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md rounded-xl border border-slate-200/60 shadow-lg">
+              {Object.entries(categoryCounts).map(([type, count]) => {
+                const cat = CATEGORIES[type] || CATEGORIES.other;
+                return (
+                  <div
+                    key={type}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors hover:bg-slate-50"
                   >
-                    S'y rendre (Maps)
-                  </a>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+                    <span
+                      className="w-3 h-3 rounded-full shadow-sm"
+                      style={{ background: cat.color }}
+                    />
+                    <span className="text-xs font-medium text-slate-600">
+                      {cat.label}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Empty state */}
       {allGeoItems.length === 0 && (
-        <Alert>
-          <MapPin className="h-4 w-4" />
-          <AlertDescription>
-            Ajoutez des adresses avec coordonnées GPS à vos étapes, logements ou activités pour les voir apparaître sur la carte.
+        <Alert className="border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <MapPin className="h-4 w-4 text-blue-500" />
+          <AlertDescription className="text-blue-700">
+            <span className="font-semibold">Aucun lieu à afficher.</span>{" "}
+            Ajoutez des adresses à vos logements, transports ou activités pour
+            les voir apparaître sur la carte. Utilisez le champ de recherche
+            d'adresse dans les formulaires d'ajout pour géolocaliser
+            automatiquement vos réservations.
           </AlertDescription>
         </Alert>
       )}

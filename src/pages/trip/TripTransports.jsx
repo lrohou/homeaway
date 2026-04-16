@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Plus, Plane, Train, Bus, Trash2, MapPin } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 
 export default function TripTransports() {
   const { tripId } = useParams();
@@ -181,6 +182,14 @@ export default function TripTransports() {
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                   placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="destAddress">Adresse de destination</Label>
+                <AddressAutocomplete
+                  defaultValue=""
+                  placeholder="Rechercher l'adresse d'arrivée..."
+                  onSelect={({ address, lat, lng }) => setFormData({ ...formData, latitude: lat, longitude: lng })}
                 />
               </div>
               <Button type="submit" className="w-full" disabled={createMutation.isPending}>

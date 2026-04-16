@@ -41,16 +41,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
-    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price } = req.body;
+    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude, longitude } = req.body;
 
     if (!type || !departure || !arrival) {
       return res.status(400).json({ error: 'Type, departure, and arrival are required' });
     }
 
     const result = await run(
-      `INSERT INTO transports (trip_id, type, departure, arrival, departuretime, arrivaltime, bookingreference, price)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tripId, type, departure, arrival, departureTime, arrivalTime, bookingReference, price || 0]
+      `INSERT INTO transports (trip_id, type, departure, arrival, departuretime, arrivaltime, bookingreference, price, latitude, longitude)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tripId, type, departure, arrival, departureTime, arrivalTime, bookingReference, price || 0, latitude || null, longitude || null]
     );
 
     res.status(201).json({ id: result.lastID, message: 'Transport created' });
@@ -64,12 +64,12 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price } = req.body;
+    const { type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude, longitude } = req.body;
 
     await run(
-      `UPDATE transports SET type = ?, departure = ?, arrival = ?, departuretime = ?, arrivaltime = ?, bookingreference = ?, price = ?
+      `UPDATE transports SET type = ?, departure = ?, arrival = ?, departuretime = ?, arrivaltime = ?, bookingreference = ?, price = ?, latitude = ?, longitude = ?
        WHERE id = ?`,
-      [type, departure, arrival, departureTime, arrivalTime, bookingReference, price, id]
+      [type, departure, arrival, departureTime, arrivalTime, bookingReference, price, latitude || null, longitude || null, id]
     );
 
     res.json({ message: 'Transport updated' });

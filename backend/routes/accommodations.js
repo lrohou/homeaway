@@ -41,16 +41,16 @@ router.get('/:id', authenticateToken, async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
-    const { name, location, checkIn, checkOut, price, currency, bookingReference } = req.body;
+    const { name, location, checkIn, checkOut, price, currency, bookingReference, latitude, longitude } = req.body;
 
     if (!name || !location || !checkIn || !checkOut) {
       return res.status(400).json({ error: 'Name, location, checkIn, and checkOut are required' });
     }
 
     const result = await run(
-      `INSERT INTO accommodations (trip_id, name, location, checkin, checkout, price, currency, bookingreference)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [tripId, name, location, checkIn, checkOut, price || 0, currency || 'EUR', bookingReference]
+      `INSERT INTO accommodations (trip_id, name, location, checkin, checkout, price, currency, bookingreference, latitude, longitude)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [tripId, name, location, checkIn, checkOut, price || 0, currency || 'EUR', bookingReference, latitude || null, longitude || null]
     );
 
     res.status(201).json({ id: result.lastID, message: 'Accommodation created' });
@@ -64,12 +64,12 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, location, checkIn, checkOut, price, currency, bookingReference } = req.body;
+    const { name, location, checkIn, checkOut, price, currency, bookingReference, latitude, longitude } = req.body;
 
     await run(
-      `UPDATE accommodations SET name = ?, location = ?, checkin = ?, checkout = ?, price = ?, currency = ?, bookingreference = ?
+      `UPDATE accommodations SET name = ?, location = ?, checkin = ?, checkout = ?, price = ?, currency = ?, bookingreference = ?, latitude = ?, longitude = ?
        WHERE id = ?`,
-      [name, location, checkIn, checkOut, price, currency, bookingReference, id]
+      [name, location, checkIn, checkOut, price, currency, bookingReference, latitude || null, longitude || null, id]
     );
 
     res.json({ message: 'Accommodation updated' });
