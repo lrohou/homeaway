@@ -24,6 +24,8 @@ export async function initDb() {
 
     await createTables();
     console.log('✅ All tables created successfully');
+
+    await runMigrations();
   } catch (error) {
     console.error('❌ Database error:', error.message);
     process.exit(1);
@@ -189,8 +191,42 @@ export async function createTables() {
     } catch (error) {
       if (!error.message.includes('already exists')) {
         console.error('Error creating table:', error.message);
-      }
     }
+  }
+}
+
+export async function runMigrations() {
+  try {
+    // 1. Check if paid_by in expenses is text
+    const expensesCol = await query(`
+      SELECT data_type 
+      FROM information_schema.columns 
+      WHERE table_name = 'expenses' AND column_name = 'paid_by'
+    `);
+
+    if (expensesCol.length > 0 && expensesCol[0].data_type === 'text') {
+      console.log('🔄 Migrating expenses.paid_by from TEXT to INTEGER...');
+      
+      // Update existing emails to IDs (stored as text temporarily)
+      await run(`
+        UPDATE expenses 
+        SET paid_by = u.id::text 
+        FROM users u 
+        WHERE expenses.paid_by = u.email
+      `);
+
+      // Change column type to INTEGER
+      // We use explicit casting and handle non-numeric values by setting them to NULL
+      await run(`
+        ALTER TABLE expenses 
+        ALTER COLUMN paid_by TYPE INTEGER 
+        USING (CASE WHEN paid_by ~ '^[0-9]+$' THEN paid_by::integer ELSE NULL END)
+      `);
+      
+      console.log('✅ Migration completed: expenses.paid_by is now INTEGER');
+    }
+  } catch (error) {
+    console.error('❌ Migration error:', error.message);
   }
 }
 
