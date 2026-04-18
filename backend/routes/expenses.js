@@ -16,7 +16,14 @@ router.get('/', authenticateToken, async (req, res) => {
        ORDER BY e.date DESC`,
       [tripId]
     );
-    res.json(expenses);
+
+    // Parse JSON fields
+    const formattedExpenses = expenses.map(e => ({
+      ...e,
+      split_between: typeof e.split_between === 'string' ? JSON.parse(e.split_between) : (e.split_between || [])
+    }));
+
+    res.json(formattedExpenses);
   } catch (error) {
     console.error('Get expenses error:', error);
     res.status(500).json({ error: 'Failed to fetch expenses' });
@@ -37,7 +44,13 @@ router.get('/:id', authenticateToken, async (req, res) => {
     if (expenses.length === 0) {
       return res.status(404).json({ error: 'Expense not found' });
     }
-    res.json(expenses[0]);
+    
+    const expense = {
+      ...expenses[0],
+      split_between: typeof expenses[0].split_between === 'string' ? JSON.parse(expenses[0].split_between) : (expenses[0].split_between || [])
+    };
+
+    res.json(expense);
   } catch (error) {
     console.error('Get expense error:', error);
     res.status(500).json({ error: 'Failed to fetch expense' });
