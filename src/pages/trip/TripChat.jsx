@@ -1,6 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { createPortal } from 'react-dom';
-import { AnimatePresence, motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiClient';
@@ -30,11 +28,6 @@ export default function TripChat() {
     queryFn: () => api.members.list(tripId),
   });
 
-  const { data: trip } = useQuery({
-    queryKey: ['trip', tripId],
-    queryFn: () => api.trips.get(tripId),
-  });
-
   const createMessageMutation = useMutation({
     mutationFn: (text) => api.messages.send(tripId, { text }),
     onSuccess: () => {
@@ -43,60 +36,10 @@ export default function TripChat() {
     }
   });
 
-  // Auto-scroll to bottom when messages change or window resizes (keyboard toggle)
-  const scrollToBottom = (behavior = 'smooth') => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior, block: 'end' });
-    }
-  };
-
+  // Auto-scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, isFullScreen]);
-
-  // Handle window resize (mobile keyboard)
-  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
-
-  useEffect(() => {
-    if (!isFullScreen) return;
-
-    const handleResize = () => {
-      if (window.visualViewport) {
-        setViewportHeight(window.visualViewport.height);
-        
-        // LOCK Viewport: On some mobile browsers, the browser scrolls the document
-        // to "help" the input focus. We undo this to keep our fixed overlay pinned correctly.
-        if (isFullScreen) {
-          window.scrollTo(0, 0);
-        }
-
-        const chatElement = document.getElementById('fullscreen-chat-overlay');
-        if (chatElement) {
-          chatElement.style.top = `${window.visualViewport.offsetTop}px`;
-        }
-      } else {
-        setViewportHeight(window.innerHeight);
-      }
-      setTimeout(() => {
-        if (isFullScreen) window.scrollTo(0, 0);
-        scrollToBottom('auto');
-      }, 100);
-    };
-
-    document.body.classList.add('body-lock');
-    window.visualViewport?.addEventListener('resize', handleResize);
-    window.visualViewport?.addEventListener('scroll', handleResize);
-    window.addEventListener('resize', handleResize);
-    
-    handleResize();
-
-    return () => {
-      document.body.classList.remove('body-lock');
-      window.visualViewport?.removeEventListener('resize', handleResize);
-      window.visualViewport?.removeEventListener('scroll', handleResize);
-      window.removeEventListener('resize', handleResize);
-    };
-  }, [isFullScreen]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -133,146 +76,105 @@ export default function TripChat() {
   };
 
   return (
-      <AnimatePresence>
-        {isFullScreen ? createPortal(
-          <div
-            id="fullscreen-chat-overlay"
-            className="fixed left-0 right-0 z-[2147483647] bg-white flex flex-col overflow-hidden shadow-2xl transition-none"
-            style={{ 
-              height: viewportHeight,
-              top: window.visualViewport?.offsetTop || 0
-            }}
-          >
-            <div className="border-b bg-white py-3 px-6 flex flex-row items-center justify-between shadow-sm shrink-0">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-primary" />
-                <h2 className="font-bold text-base truncate max-w-[180px]">
-                  {trip?.name || 'Discussion'}
-                </h2>
-              </div>
-              <div className="flex items-center gap-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-full bg-slate-50"
-                  onClick={() => setIsFullScreen(false)}
-                >
-                  <Minimize2 className="w-4 h-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-9 w-9 rounded-full bg-slate-50"
-                  onClick={() => setIsFullScreen(false)}
-                >
-                  <X className="w-5 h-5" />
-                </Button>
-              </div>
-            </div>
+    <div className="space-y-4">
+      <div>
+        <h1 className="text-3xl font-bold">Chat Collectif</h1>
+        <p className="text-muted-foreground mt-1">Communiquez avec les membres du voyage ({members.length || 1} membres)</p>
+      </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/10 overscroll-contain">
-              {renderMessages()}
-            </div>
-
-            <div className="border-t p-3 pb-6 bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)] shrink-0">
-              {renderInput()}
-            </div>
-          </div>,
-          document.body
-        ) : (
-          <Card className="flex flex-col h-[600px] border border-border shadow-md rounded-xl overflow-hidden">
-            <CardHeader className="border-b bg-muted/20 py-3 px-4 flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="flex items-center gap-2 text-lg font-bold">
-                <MessageCircle className="w-5 h-5 text-primary" />
-                Discussion
-              </CardTitle>
+      <Card className={cn(
+        "flex flex-col border border-border shadow-md transition-all duration-300 overflow-hidden",
+        isFullScreen ? "fixed inset-0 z-[100] rounded-none h-full" : "h-[600px] rounded-xl"
+      )}>
+        <CardHeader className="border-b bg-muted/20 py-3 px-4 flex flex-row items-center justify-between space-y-0">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MessageCircle className="w-5 h-5 text-primary" />
+            Discussion
+          </CardTitle>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={() => setIsFullScreen(!isFullScreen)}
+            >
+              {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+            {isFullScreen && (
               <Button
                 variant="ghost"
                 size="icon"
                 className="h-8 w-8 rounded-full"
-                onClick={() => setIsFullScreen(true)}
+                onClick={() => setIsFullScreen(false)}
               >
-                <Maximize2 className="w-4 h-4" />
+                <X className="w-4 h-4" />
               </Button>
-            </CardHeader>
-
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
-              {renderMessages()}
-            </div>
-
-            <div className="border-t p-4 bg-card">
-              {renderInput()}
-            </div>
-          </Card>
-        )}
-      </AnimatePresence>
-    );
-
-  function renderMessages() {
-    if (messages.length === 0) {
-      return (
-        <div className="text-center py-20 text-muted-foreground">
-          <div className="bg-muted w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-            <MessageCircle className="w-6 h-6 opacity-20" />
+            )}
           </div>
-          <p>Aucun message pour le moment. Lancez la conversation !</p>
+        </CardHeader>
+
+        <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">
+          {messages.length === 0 ? (
+            <div className="text-center py-20 text-muted-foreground">
+              <div className="bg-muted w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
+                <MessageCircle className="w-6 h-6 opacity-20" />
+              </div>
+              <p>Aucun message pour le moment. Lancez la conversation !</p>
+            </div>
+          ) : (
+            <>
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`flex gap-3 ${msg.user_id === user?.id ? 'flex-row-reverse' : 'flex-row'}`}
+                >
+                  <Avatar className="w-9 h-9 shrink-0 border border-border">
+                    <AvatarImage src={getMemberAvatar(msg.user_id)} />
+                    <AvatarFallback>U</AvatarFallback>
+                  </Avatar>
+
+                  <div className={`flex flex-col gap-1 max-w-[75%] ${msg.user_id === user?.id ? 'items-end' : 'items-start'}`}>
+                    <div className={`flex items-center gap-2 text-[10px] px-1 ${msg.user_id === user?.id ? 'flex-row-reverse' : 'flex-row'}`}>
+                      <span className="font-bold text-foreground/80">{getMemberName(msg.user_id)}</span>
+                      <span className="text-muted-foreground/60">{formatTime(msg.created_at || msg.created_date)}</span>
+                    </div>
+                    <div
+                      className={`px-4 py-2 rounded-2xl text-sm shadow-sm ${msg.user_id === user?.id
+                        ? 'bg-primary text-primary-foreground rounded-tr-none'
+                        : 'bg-white border text-secondary-foreground rounded-tl-none'
+                        }`}
+                    >
+                      <p className="whitespace-pre-wrap">{msg.content || msg.text}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          )}
         </div>
-      );
-    }
 
-    return (
-      <>
-        {messages.map((msg) => (
-          <div
-            key={msg.id}
-            className={`flex gap-3 ${msg.user_id === user?.id ? 'flex-row-reverse' : 'flex-row'}`}
-          >
-            <Avatar className="w-9 h-9 shrink-0 border border-border">
-              <AvatarImage src={getMemberAvatar(msg.user_id)} />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
-
-            <div className={`flex flex-col gap-1 max-w-[75%] ${msg.user_id === user?.id ? 'items-end' : 'items-start'}`}>
-              <div className={`flex items-center gap-2 text-[10px] px-1 ${msg.user_id === user?.id ? 'flex-row-reverse' : 'flex-row'}`}>
-                <span className="font-bold text-foreground/80">{getMemberName(msg.user_id)}</span>
-                <span className="text-muted-foreground/60">{formatTime(msg.created_at || msg.created_date)}</span>
-              </div>
-              <div
-                className={`px-4 py-2 rounded-2xl text-sm shadow-sm ${msg.user_id === user?.id
-                    ? 'bg-primary text-primary-foreground rounded-tr-none'
-                    : 'bg-white border text-secondary-foreground rounded-tl-none'
-                  }`}
-              >
-                <p className="whitespace-pre-wrap">{msg.content || msg.text}</p>
-              </div>
-            </div>
-          </div>
-        ))}
-        <div ref={messagesEndRef} />
-      </>
-    );
-  }
-
-  function renderInput() {
-    return (
-      <form onSubmit={handleSendMessage} className="flex gap-2">
-        <Input
-          type="text"
-          placeholder="Écrivez votre message..."
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          disabled={createMessageMutation.isPending}
-          className="flex-1"
-        />
-        <Button
-          type="submit"
-          size="icon"
-          disabled={!messageText.trim() || createMessageMutation.isPending}
-          className="shrink-0"
-        >
-          <Send className="w-4 h-4" />
-        </Button>
-      </form>
-    );
-  }
+        <div className="border-t p-4 bg-card">
+          <form onSubmit={handleSendMessage} className="flex gap-2">
+            <Input
+              type="text"
+              placeholder="Écrivez votre message..."
+              value={messageText}
+              onChange={(e) => setMessageText(e.target.value)}
+              disabled={createMessageMutation.isPending}
+              className="flex-1"
+            />
+            <Button
+              type="submit"
+              size="icon"
+              disabled={!messageText.trim() || createMessageMutation.isPending}
+              className="shrink-0"
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
+        </div>
+      </Card>
+    </div>
+  );
 }

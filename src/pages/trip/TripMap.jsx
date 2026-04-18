@@ -1,11 +1,10 @@
 import React, { useRef, useEffect, useMemo, useState } from "react";
-import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
 import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon, Maximize2, Minimize2 } from "lucide-react";
+import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTranslation } from "@/lib/LanguageContext";
@@ -161,8 +160,6 @@ export default function TripMap() {
   const markersRef = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const placeholderRef = useRef(null);
-  const [placeholderRect, setPlaceholderRect] = useState(null);
 
   const { data: steps = [], isLoading: stepsLoading } = useQuery({
     queryKey: ["steps", tripId],
@@ -269,68 +266,20 @@ export default function TripMap() {
     mapRef.current = map;
 
     return () => {
-      if (mapRef.current) {
-        mapRef.current.remove();
-        mapRef.current = null;
-      }
+      map.remove();
+      mapRef.current = null;
       setMapLoaded(false);
     };
   }, []);
 
-  // Track placeholder position for inline map
+  // Handle map resize on fullscreen toggle
   useEffect(() => {
-    if (isFullScreen) {
-      document.body.classList.add('body-lock');
-      return () => document.body.classList.remove('body-lock');
+    if (mapRef.current) {
+      setTimeout(() => {
+        mapRef.current.resize();
+      }, 100);
     }
-    
-    const updateRect = () => {
-      if (placeholderRef.current) {
-        setPlaceholderRect(placeholderRef.current.getBoundingClientRect());
-      }
-    };
-
-    updateRect();
-    const observer = new ResizeObserver(updateRect);
-    if (placeholderRef.current) observer.observe(placeholderRef.current);
-    window.addEventListener('scroll', updateRect);
-    window.addEventListener('resize', updateRect);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', updateRect);
-      window.removeEventListener('resize', updateRect);
-    };
   }, [isFullScreen]);
-
-  // Sync map resize on ANY size change or mode change
-  useEffect(() => {
-    if (!mapRef.current) return;
-    
-    // Aggressive resize loop for mobile browser layout shifts
-    let startTime = Date.now();
-    const duration = 1500; // Keep resizing for 1.5s to cover all transitions
-
-    const resizeLoop = () => {
-      if (!mapRef.current) return;
-      mapRef.current.resize();
-      
-      if (Date.now() - startTime < duration) {
-        requestAnimationFrame(resizeLoop);
-      }
-    };
-
-    requestAnimationFrame(resizeLoop);
-
-    // Also use timeouts as fallback
-    const t1 = setTimeout(() => { startTime = Date.now(); requestAnimationFrame(resizeLoop); }, 100);
-    const t2 = setTimeout(() => { startTime = Date.now(); requestAnimationFrame(resizeLoop); }, 500);
-
-    return () => {
-      clearTimeout(t1);
-      clearTimeout(t2);
-    };
-  }, [isFullScreen, placeholderRect]);
 
   // Update markers when data changes
   useEffect(() => {
@@ -422,13 +371,10 @@ export default function TripMap() {
           border-radius: 0 !important;
           display: flex !important;
           flex-direction: column !important;
-          width: 100vw !important;
-          height: 100dvh !important;
         }
         .fullscreen-overlay .map-container {
           flex: 1 !important;
           height: 100% !important;
-          width: 100% !important;
         }
       `}</style>
       {/* Header */}
@@ -455,106 +401,63 @@ export default function TripMap() {
             variant="outline"
             size="icon"
             onClick={() => setIsFullScreen(!isFullScreen)}
-            className="rounded-full border-slate-200 shadow-sm hover:bg-slate-50"
-            title={isFullScreen ? t('common.reduce') || 'Réduire' : t('common.expand') || 'Agrandir'}
+            className="rounded-full border-slate-200"
           >
-            {isFullScreen ? (
-              <Minimize2 className="w-4 h-4 text-blue-600" />
-            ) : (
-              <Maximize2 className="w-4 h-4 text-slate-500" />
-            )}
+            <Sparkles className={cn("w-4 h-4", isFullScreen ? "text-blue-600 fill-blue-50" : "text-slate-500")} />
           </Button>
         </div>
       </div>
 
-      {/* LEGACY Map Container Section Replaced with Placeholder & Portal */}
-      <div 
-        ref={placeholderRef}
-        className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 bg-slate-100 h-[500px] sm:h-[650px]"
-      >
-        {(!placeholderRect || !mapLoaded) && (
-          <div className="absolute inset-0 flex items-center justify-center animate-pulse">
-            <Loader2 className="w-8 h-8 text-slate-300 animate-spin" />
+      {/* Map Container */}
+      <div className={cn(
+        "relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 transition-all duration-300",
+        isFullScreen ? "fullscreen-overlay" : ""
+      )}>
+        {isFullScreen && (
+          <div className="bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center">
+            <h3 className="font-bold flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              {t('map.title')}
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(false)} className="rounded-full">
+              {t('common.close') || 'Fermer'}
+            </Button>
+          </div>
+        )}
+        <div
+          ref={mapContainerRef}
+          className={cn("w-full map-container", isFullScreen ? "" : "h-[500px] sm:h-[650px]")}
+          style={{ minHeight: isFullScreen ? "0" : "400px" }}
+        />
+
+        {/* Legend overlay */}
+        {Object.keys(categoryCounts).length > 0 && (
+          <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit">
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md rounded-xl border border-slate-200/60 shadow-lg">
+              {Object.entries(categoryCounts).map(([type, count]) => {
+                const cat = CATEGORIES[type] || CATEGORIES.other;
+                return (
+                  <div
+                    key={type}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors hover:bg-slate-50"
+                  >
+                    <span
+                      className="w-3 h-3 rounded-full shadow-sm"
+                      style={{ background: cat.color }}
+                    />
+                    <span className="text-xs font-medium text-slate-600">
+                      {t(cat.key)}
+                    </span>
+                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                      {count}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
-
-      {/* PERSISTENT MAP PORTAL - Does not unmount! */}
-      {createPortal(
-        <div 
-          className={cn(
-            "fixed transition-all duration-300 ease-in-out bg-white overflow-hidden",
-            isFullScreen 
-              ? "inset-0 z-[100000] flex flex-col" 
-              : "z-[50] rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto"
-          )}
-          style={isFullScreen ? {
-            width: '100vw',
-            height: '100dvh',
-            top: 0,
-            left: 0,
-            zIndex: 2147483647,
-            opacity: 1,
-            display: 'flex'
-          } : {
-            left: placeholderRect?.left || 0,
-            top: placeholderRect?.top || 0,
-            width: placeholderRect?.width || '100%',
-            height: placeholderRect?.height || '500px',
-            position: 'fixed',
-            visibility: placeholderRect ? 'visible' : 'hidden',
-            zIndex: 2147483647,
-            opacity: 1
-          }}
-        >
-          {isFullScreen && (
-            <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm shrink-0">
-              <h3 className="font-bold flex items-center gap-2 text-slate-800">
-                <MapPin className="w-4 h-4 text-blue-500" />
-                {trip?.name || t('map.title')}
-              </h3>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setIsFullScreen(false)} 
-                  className="rounded-full gap-2 border-slate-200 font-semibold shadow-sm"
-                >
-                  <Minimize2 className="w-4 h-4" />
-                  {t('common.reduce') || 'Réduire'}
-                </Button>
-              </div>
-            </div>
-          )}
-
-          <div 
-            ref={mapContainerRef} 
-            className="w-full h-full relative flex-1"
-          />
-          
-          {/* Legend in map layer */}
-          {Object.keys(categoryCounts).length > 0 && mapLoaded && (
-            <div className={cn(
-              "absolute z-10 transition-all duration-300",
-              isFullScreen ? "bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-auto" : "bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit"
-            )}>
-              <div className="flex flex-wrap items-center justify-center gap-2 px-4 py-3 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-xl">
-                {Object.entries(categoryCounts).map(([type, count]) => {
-                  const cat = CATEGORIES[type] || CATEGORIES.other;
-                  return (
-                    <div key={type} className="flex items-center gap-1.5 px-2 py-0.5">
-                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: cat.color }} />
-                      <span className="text-xs font-bold text-slate-600 truncate">{t(cat.key)}</span>
-                      <span className="text-[10px] font-black text-slate-300">{count}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>,
-        document.body
-      )}
 
       {/* Empty state */}
       {allGeoItems.length === 0 && (
