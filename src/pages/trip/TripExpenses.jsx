@@ -99,7 +99,7 @@ export default function TripExpenses() {
         amount: Number(a.price),
         category: "activity",
         date: a.date,
-        paid_by: a.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
+        paid_by: a.paid_by,
         split_between: [],
         isActivity: true
       }));
@@ -111,7 +111,7 @@ export default function TripExpenses() {
         amount: Number(tr.price),
         category: "transport",
         date: tr.departureTime || new Date().toISOString(),
-        paid_by: tr.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
+        paid_by: tr.paid_by,
         split_between: [],
         isActivity: true
       }));
@@ -124,7 +124,7 @@ export default function TripExpenses() {
         amount: Number(a.price),
         category: "accommodation",
         date: a.checkIn || new Date().toISOString(),
-        paid_by: a.paid_by || t('expenses.autoSystem') || "Système (Automatique)",
+        paid_by: a.paid_by,
         split_between: [],
         isActivity: true
       }));
@@ -174,22 +174,33 @@ export default function TripExpenses() {
     tripMembers.forEach((m) => (bal[m.email] = 0));
     
     allExpenses.forEach((e) => {
-      const payerEmail = e.payer_email || memberMap[e.paid_by]?.email || e.paid_by;
+      const payerEmail = e.payer_email || memberMap[e.paid_by]?.email || (typeof e.paid_by === 'string' ? e.paid_by : null);
       
+      if (!payerEmail) return; // Skip items with no valid payer
+
       if (e.isActivity) {
+        // For reservations (hotels, transports, activities), split equal among ALL members
         const splitCount = tripMembers.length || 1;
         const perPerson = e.amount / splitCount;
+        
+        // Credit the payer
+        bal[payerEmail] = (bal[payerEmail] || 0) + e.amount - perPerson;
+
+        // Debit everyone else
         tripMembers.forEach((m) => {
-          bal[m.email] = (bal[m.email] || 0) - perPerson;
+          if (m.email !== payerEmail) {
+            bal[m.email] = (bal[m.email] || 0) - perPerson;
+          }
         });
       } else {
+        // For standard expenses, use split_between list
         const splitCount = e.split_between?.length || 1;
         const perPerson = e.amount / splitCount;
         
-        if (payerEmail) {
-          bal[payerEmail] = (bal[payerEmail] || 0) + e.amount - perPerson;
-        }
+        // Credit the payer
+        bal[payerEmail] = (bal[payerEmail] || 0) + e.amount - perPerson;
         
+        // Debit the people in split_between
         e.split_between?.forEach((mEmail) => {
           if (mEmail !== payerEmail) {
             bal[mEmail] = (bal[mEmail] || 0) - perPerson;

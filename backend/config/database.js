@@ -153,7 +153,8 @@ export async function createTables() {
       currency TEXT DEFAULT 'EUR',
       bookingreference TEXT,
       latitude REAL,
-      longitude REAL
+      longitude REAL,
+      paid_by INTEGER
     )`,
 
     `CREATE TABLE IF NOT EXISTS activities (
@@ -167,7 +168,8 @@ export async function createTables() {
       description TEXT,
       latitude REAL,
       longitude REAL,
-      location TEXT
+      location TEXT,
+      paid_by INTEGER
     )`,
 
     `CREATE TABLE IF NOT EXISTS transports (
@@ -181,7 +183,8 @@ export async function createTables() {
       bookingreference TEXT,
       price REAL,
       latitude REAL,
-      longitude REAL
+      longitude REAL,
+      paid_by INTEGER
     )`
   ];
 
@@ -225,6 +228,20 @@ export async function runMigrations() {
       `);
       
       console.log('✅ Migration completed: expenses.paid_by is now INTEGER');
+    }
+
+    // 3. Add paid_by to accommodations, activities, transports if missing
+    const tablesToUpdate = ['accommodations', 'activities', 'transports'];
+    for (const table of tablesToUpdate) {
+      const colCheck = await query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_name = '${table}' AND column_name = 'paid_by'
+      `);
+      if (colCheck.length === 0) {
+        console.log(`🔄 Adding paid_by column to ${table}...`);
+        await run(`ALTER TABLE ${table} ADD COLUMN paid_by INTEGER`);
+      }
     }
   } catch (error) {
     console.error('❌ Migration error:', error.message);

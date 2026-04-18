@@ -44,17 +44,15 @@ export default function TripAccommodations() {
     queryFn: () => api.accommodations.list(tripId),
   });
 
+  const { data: members = [] } = useQuery({
+    queryKey: ['members', tripId],
+    queryFn: () => api.members.list(tripId),
+  });
+
   const tripMembers = useMemo(() => {
-    const m = [user?.email];
-    if (trip?.members) {
-      if (typeof trip.members[0] === "string") {
-        m.push(...trip.members);
-      } else {
-        m.push(...trip.members.map(x => x.email || x));
-      }
-    }
-    return [...new Set(m)].filter(Boolean);
-  }, [trip, user]);
+    if (members.length > 0) return members;
+    return [{ user_id: user?.id, email: user?.email, name: user?.name }];
+  }, [members, user]);
 
   const createMutation = useMutation({
     mutationFn: (data) => api.accommodations.create(tripId, data),
@@ -87,7 +85,8 @@ export default function TripAccommodations() {
       ...formData,
       price: parseFloat(formData.price),
       latitude: parseFloat(formData.latitude),
-      longitude: parseFloat(formData.longitude)
+      longitude: parseFloat(formData.longitude),
+      paid_by: formData.paid_by === 'none' || !formData.paid_by ? null : Number(formData.paid_by)
     });
   };
 
@@ -175,8 +174,8 @@ export default function TripAccommodations() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">{t('expenses.autoSystem')}</SelectItem>
-                      {tripMembers.map((email) => (
-                        <SelectItem key={email} value={email}>{email}</SelectItem>
+                      {tripMembers.map((m) => (
+                        <SelectItem key={m.user_id || m.email} value={String(m.user_id || m.email)}>{m.name || m.email}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
