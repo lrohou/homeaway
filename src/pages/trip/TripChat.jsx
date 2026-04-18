@@ -6,14 +6,16 @@ import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, MessageCircle } from 'lucide-react';
+import { Send, MessageCircle, Maximize2, Minimize2, X } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 
 export default function TripChat() {
   const { tripId } = useParams();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [messageText, setMessageText] = useState('');
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const messagesEndRef = useRef(null);
 
   const { data: messages = [] } = useQuery({
@@ -80,12 +82,35 @@ export default function TripChat() {
         <p className="text-muted-foreground mt-1">Communiquez avec les membres du voyage ({members.length || 1} membres)</p>
       </div>
 
-      <Card className="flex flex-col h-[600px] border border-border shadow-md">
-        <CardHeader className="border-b bg-muted/20">
+      <Card className={cn(
+        "flex flex-col border border-border shadow-md transition-all duration-300 overflow-hidden",
+        isFullScreen ? "fixed inset-0 z-[100] rounded-none h-full" : "h-[600px] rounded-xl"
+      )}>
+        <CardHeader className="border-b bg-muted/20 py-3 px-4 flex flex-row items-center justify-between space-y-0">
           <CardTitle className="flex items-center gap-2 text-lg">
             <MessageCircle className="w-5 h-5 text-primary" />
-            Discussion du voyage
+            Discussion
           </CardTitle>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full"
+              onClick={() => setIsFullScreen(!isFullScreen)}
+            >
+              {isFullScreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+            {isFullScreen && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                onClick={() => setIsFullScreen(false)}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            )}
+          </div>
         </CardHeader>
 
         <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/30">

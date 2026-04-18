@@ -64,33 +64,47 @@ export default function TripLayout() {
             </div>
           )}
         </div>
-        <div className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide">
-          {tabs.map((tab) => {
-            const isActive = currentTab === tab.path;
-            const Icon = tab.icon;
-            return (
-              <Link
-                key={tab.path}
-                to={`/trip/${tripId}/${tab.path}`}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-3.5 text-sm font-medium transition-all whitespace-nowrap -mb-px border-b-2 relative",
-                  isActive
-                    ? "border-accent text-accent"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                <Icon className={cn("w-4 h-4", isActive ? "animate-pulse" : "")} />
-                {t(tab.key)}
-                {isActive && (
-                  <motion.div
-                    layoutId="activeTab"
-                    className="absolute inset-x-0 bottom-0 h-0.5 bg-accent"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                )}
-              </Link>
-            );
-          })}
+        <div className="relative">
+          {/* Gradient indicators for horizontal scroll */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none opacity-0 sm:hidden lg:opacity-0" id="scroll-fade-left" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" id="scroll-fade-right" />
+          
+          <div 
+            className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide relative touch-pan-x"
+            onScroll={(e) => {
+              const left = e.target.scrollLeft > 10;
+              const right = e.target.scrollLeft < (e.target.scrollWidth - e.target.clientWidth - 10);
+              document.getElementById('scroll-fade-left').style.opacity = left ? '1' : '0';
+              document.getElementById('scroll-fade-right').style.opacity = right ? '1' : '0';
+            }}
+          >
+            {tabs.map((tab) => {
+              const isActive = currentTab === tab.path;
+              const Icon = tab.icon;
+              return (
+                <Link
+                  key={tab.path}
+                  to={`/trip/${tripId}/${tab.path}`}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-3.5 text-sm font-medium transition-all whitespace-nowrap -mb-px border-b-2 relative shrink-0",
+                    isActive
+                      ? "border-accent text-accent"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  <Icon className={cn("w-4 h-4", isActive ? "animate-pulse" : "")} />
+                  {t(tab.key)}
+                  {isActive && (
+                    <motion.div
+                      layoutId="activeTab"
+                      className="absolute inset-x-0 bottom-0 h-0.5 bg-accent"
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </div>
 

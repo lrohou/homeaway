@@ -8,6 +8,8 @@ import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as Route
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTranslation } from "@/lib/LanguageContext";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 const MAPTILER_STYLE = "https://api.maptiler.com/maps/019d9665-0270-7b06-bf41-907c11a5295a/style.json?key=FZ6exJZ6JibveJODuzvj";
 
@@ -157,6 +159,7 @@ export default function TripMap() {
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   const { data: steps = [], isLoading: stepsLoading } = useQuery({
     queryKey: ["steps", tripId],
@@ -269,6 +272,15 @@ export default function TripMap() {
     };
   }, []);
 
+  // Handle map resize on fullscreen toggle
+  useEffect(() => {
+    if (mapRef.current) {
+      setTimeout(() => {
+        mapRef.current.resize();
+      }, 100);
+    }
+  }, [isFullScreen]);
+
   // Update markers when data changes
   useEffect(() => {
     if (!mapRef.current || !mapLoaded) return;
@@ -350,6 +362,20 @@ export default function TripMap() {
         .maplibregl-popup-tip {
           border-top-color: rgba(255, 255, 255, 0.7) !important;
         }
+        .fullscreen-overlay {
+          position: fixed !important;
+          inset: 0 !important;
+          z-index: 9999 !important;
+          background: white !important;
+          margin: 0 !important;
+          border-radius: 0 !important;
+          display: flex !important;
+          flex-direction: column !important;
+        }
+        .fullscreen-overlay .map-container {
+          flex: 1 !important;
+          height: 100% !important;
+        }
       `}</style>
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -363,21 +389,45 @@ export default function TripMap() {
             </p>
           </div>
         </div>
-        <Badge
-          variant="secondary"
-          className="gap-1.5 py-1.5 px-4 bg-slate-100 text-slate-700 border border-slate-200 font-semibold"
-        >
-          <Navigation className="w-3.5 h-3.5" />
-          {allGeoItems.length} {allGeoItems.length > 1 ? t('map.places') : t('map.place')}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant="secondary"
+            className="gap-1.5 py-1.5 px-4 bg-slate-100 text-slate-700 border border-slate-200 font-semibold hidden sm:flex"
+          >
+            <Navigation className="w-3.5 h-3.5" />
+            {allGeoItems.length} {allGeoItems.length > 1 ? t('map.places') : t('map.place')}
+          </Badge>
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => setIsFullScreen(!isFullScreen)}
+            className="rounded-full border-slate-200"
+          >
+            <Sparkles className={cn("w-4 h-4", isFullScreen ? "text-blue-600 fill-blue-50" : "text-slate-500")} />
+          </Button>
+        </div>
       </div>
 
       {/* Map Container */}
-      <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50">
+      <div className={cn(
+        "relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 transition-all duration-300",
+        isFullScreen ? "fullscreen-overlay" : ""
+      )}>
+        {isFullScreen && (
+          <div className="bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center">
+            <h3 className="font-bold flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-blue-500" />
+              {t('map.title')}
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(false)} className="rounded-full">
+              {t('common.close') || 'Fermer'}
+            </Button>
+          </div>
+        )}
         <div
           ref={mapContainerRef}
-          className="h-[500px] sm:h-[650px] w-full"
-          style={{ minHeight: "400px" }}
+          className={cn("w-full map-container", isFullScreen ? "" : "h-[500px] sm:h-[650px]")}
+          style={{ minHeight: isFullScreen ? "0" : "400px" }}
         />
 
         {/* Legend overlay */}
