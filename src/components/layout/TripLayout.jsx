@@ -81,37 +81,37 @@ export default function TripLayout() {
       </div>
 
       {/* Sticky Tab navigation */}
-      <div className="sticky top-0 z-40 -mx-4 px-4 bg-background/80 backdrop-blur-md border-b border-border/50 mb-6 sm:-mx-0 sm:px-0">
-        <div className="py-3 px-1">
+      <div className="sticky top-0 z-40 -mx-4 px-4 bg-background/95 backdrop-blur-md border-b border-border/50 mb-4 sm:-mx-0 sm:px-0">
+        <div className="pt-4 pb-1 px-1">
           {isLoading ? (
             <div className="space-y-1">
-              <Skeleton className="h-6 w-48" />
-              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-7 w-48" />
+              <Skeleton className="h-3 w-32" />
             </div>
           ) : (
             <div>
-              <h2 className="font-display text-xl font-bold text-foreground truncate max-w-sm">
+              <h2 className="font-display text-2xl font-bold text-foreground truncate max-w-sm tracking-tight leading-none mb-0.5">
                 {trip?.name || t('common.loading')}
               </h2>
               {trip?.location_name && (
-                <p className="text-sm text-muted-foreground truncate">
+                <p className="text-xs font-medium text-muted-foreground/80 truncate">
                   {trip.location_name}
                 </p>
               )}
             </div>
           )}
         </div>
-        <div className="relative">
-          {/* Gradient indicators for horizontal scroll */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none opacity-0 sm:hidden lg:opacity-0" id="scroll-fade-left" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" id="scroll-fade-right" />
+        <div className="relative group/tabs">
+          {/* Gradient indicators for horizontal scroll - Enhanced visibility */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-background via-background/50 to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300 sm:hidden" id="scroll-fade-left" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-background via-background/50 to-transparent z-10 pointer-events-none transition-opacity duration-300 sm:hidden" id="scroll-fade-right" />
 
           <div
             ref={scrollContainerRef}
-            className="flex flex-nowrap gap-1 overflow-x-auto pb-2 relative touch-pan-x overscroll-x-contain scrollbar-hide"
+            className="flex flex-nowrap gap-0.5 overflow-x-auto pb-1 mt-2 relative touch-pan-x overscroll-x-contain scrollbar-hide active:cursor-grabbing"
             onScroll={(e) => {
-              const left = e.target.scrollLeft > 10;
-              const right = e.target.scrollLeft < (e.target.scrollWidth - e.target.clientWidth - 10);
+              const left = e.target.scrollLeft > 20;
+              const right = e.target.scrollLeft < (e.target.scrollWidth - e.target.clientWidth - 20);
               const fadeLeft = document.getElementById('scroll-fade-left');
               const fadeRight = document.getElementById('scroll-fade-right');
               if (fadeLeft) fadeLeft.style.opacity = left ? '1' : '0';
@@ -127,13 +127,13 @@ export default function TripLayout() {
                   to={`/trip/${tripId}/${tab.path}`}
                   data-active={isActive}
                   className={cn(
-                    "flex flex-col items-center justify-center gap-1.5 px-5 py-4 text-xs font-semibold transition-all whitespace-nowrap -mb-px border-b-2 relative shrink-0",
+                    "flex flex-col items-center justify-center gap-1.5 px-4 py-3 text-[11px] font-bold transition-all whitespace-nowrap -mb-px border-b-2 relative shrink-0",
                     isActive
                       ? "border-accent text-accent"
-                      : "border-transparent text-muted-foreground hover:text-foreground"
+                      : "border-transparent text-muted-foreground/60 hover:text-foreground"
                   )}
                 >
-                  <Icon className={cn("w-5 h-5", isActive ? "animate-pulse" : "")} />
+                  <Icon className={cn("w-4.5 h-4.5", isActive ? "animate-pulse" : "")} />
                   {t(tab.key)}
                   {isActive && (
                     <motion.div
@@ -145,6 +145,8 @@ export default function TripLayout() {
                 </Link>
               );
             })}
+            {/* Spacer at the end to ensure the last tab is visible but also shows there's more space */}
+            <div className="w-8 shrink-0 sm:hidden" />
           </div>
         </div>
       </div>

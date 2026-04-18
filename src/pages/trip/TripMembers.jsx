@@ -35,8 +35,9 @@ export default function TripMembers() {
     mutationFn: (email) => api.members.invite(tripId, { email }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invitations', tripId] });
+      const currentEmail = inviteEmail;
       setInviteEmail('');
-      setSuccessMessage(`Invitation envoyée à ${inviteEmail}`);
+      setSuccessMessage(`${t('members.inviteSent')} ${currentEmail}`);
       setTimeout(() => setSuccessMessage(''), 3000);
       setIsOpen(false);
     }

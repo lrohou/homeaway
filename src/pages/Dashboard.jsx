@@ -70,7 +70,7 @@ export default function Dashboard() {
           {t('dashboard.title')}
         </h1>
         <p className="text-muted-foreground">
-          Bienvenue{user?.full_name ? `, ${user.full_name.split(" ")[0]}` : ""}.
+          {t('dashboard.welcome')} {user?.name ? `, ${user.name.split(" ")[0]}` : ""}.
           {t('dashboard.subtitle')}
         </p>
       </motion.div>
@@ -82,19 +82,19 @@ export default function Dashboard() {
       <Tabs value={filter} onValueChange={setFilter}>
         <TabsList className="bg-secondary/50 p-1 rounded-full">
           <TabsTrigger value="all" className="rounded-full text-sm px-4">
-            Tous
+            {t('dashboard.all')}
           </TabsTrigger>
           <TabsTrigger value="upcoming" className="rounded-full text-sm px-4 gap-1.5">
             <Compass className="w-3.5 h-3.5" />
-            À venir
+            {t('dashboard.upcoming')}
           </TabsTrigger>
           <TabsTrigger value="ongoing" className="rounded-full text-sm px-4 gap-1.5">
             <Plane className="w-3.5 h-3.5" />
-            En cours
+            {t('dashboard.ongoing')}
           </TabsTrigger>
           <TabsTrigger value="past" className="rounded-full text-sm px-4 gap-1.5">
             <Clock className="w-3.5 h-3.5" />
-            Passés
+            {t('dashboard.past')}
           </TabsTrigger>
         </TabsList>
       </Tabs>
@@ -123,10 +123,10 @@ export default function Dashboard() {
             <Compass className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="font-display text-xl font-semibold text-foreground mb-1.5">
-            {filter === "all" ? t('dashboard.empty') : t('dashboard.empty') + " (Catégorie)"}
+            {t('dashboard.empty')}
           </h3>
           <p className="text-muted-foreground text-sm max-w-sm">
-            {t('dashboard.create')}
+            {t('dashboard.welcomeDesc')}
           </p>
         </motion.div>
       ) : (

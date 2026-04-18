@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Loader2, Receipt, ArrowUpRight, ArrowDownLeft, Scale } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/LanguageContext";
@@ -32,7 +32,8 @@ const categoryLabels = {
 export default function TripExpenses() {
   const { tripId } = useParams();
   const { user } = useAuth();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const dateLocale = lang === 'fr' ? fr : enUS;
   const queryClient = useQueryClient();
   const [showAdd, setShowAdd] = useState(false);
   const [showBalance, setShowBalance] = useState(false);
@@ -322,7 +323,7 @@ export default function TripExpenses() {
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground text-base truncate">{exp.title}</p>
                   <p className="text-xs text-muted-foreground font-medium">
-                    {t('expenses.paidBy')} {exp.payer_name || exp.payer_email || exp.paid_by || "—"}{exp.date && ` · ${format(new Date(exp.date), "d MMM yyyy", { locale: fr })}`}
+                    {t('expenses.paidBy')} {exp.payer_name || exp.payer_email || exp.paid_by || "—"}{exp.date && ` · ${format(new Date(exp.date), "d MMM yyyy", { locale: dateLocale })}`}
                   </p>
                 </div>
               </div>
@@ -461,7 +462,7 @@ export default function TripExpenses() {
             
             {Object.keys(balances).length > 0 && settlements.length > 0 && (
               <div className="pt-6 mt-6 border-t border-slate-200">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">Synthèse</h4>
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3 px-1">{t('expenses.summary') || 'Synthèse'}</h4>
                 <div className="space-y-2">
                   {Object.entries(balances)
                     .filter(([_, bal]) => Math.abs(bal) > 0.01)

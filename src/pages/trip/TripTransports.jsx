@@ -13,10 +13,13 @@ import { Badge } from '@/components/ui/badge';
 import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 import { useAuth } from '@/lib/AuthContext';
 import { useTranslation } from '@/lib/LanguageContext';
+import { format, parseISO } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
 
 export default function TripTransports() {
   const { tripId } = useParams();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const dateLocale = lang === 'fr' ? fr : enUS;
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -261,11 +264,11 @@ export default function TripTransports() {
               </div>
             </CardHeader>
             <CardContent className="space-y-6 pb-6 pt-2">
-              <div className="flex items-center justify-between">
+               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('planning.departure')}</p>
-                  <p className="text-sm font-semibold">{transport.departureTime.split('T')[0]}</p>
-                  <p className="text-lg font-mono font-bold text-blue-600">{transport.departureTime.split('T')[1] || ''}</p>
+                  <p className="text-sm font-semibold">{format(parseISO(transport.departureTime.split(' ')[0]), "d MMM yyyy", { locale: dateLocale })}</p>
+                  <p className="text-lg font-mono font-bold text-blue-600">{transport.departureTime.split('T')[1]?.substring(0, 5) || ''}</p>
                 </div>
                 <div className="flex-1 flex flex-col items-center px-4">
                   <div className="w-full h-px bg-slate-200 relative">
@@ -276,8 +279,8 @@ export default function TripTransports() {
                 </div>
                 <div className="space-y-1 text-right">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('planning.arrival')}</p>
-                  <p className="text-sm font-semibold">{transport.arrivalTime.split('T')[0]}</p>
-                  <p className="text-lg font-mono font-bold text-blue-600">{transport.arrivalTime.split('T')[1] || ''}</p>
+                  <p className="text-sm font-semibold">{format(parseISO(transport.arrivalTime.split(' ')[0]), "d MMM yyyy", { locale: dateLocale })}</p>
+                  <p className="text-lg font-mono font-bold text-blue-600">{transport.arrivalTime.split('T')[1]?.substring(0, 5) || ''}</p>
                 </div>
               </div>
               

@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { AlertCircle, Loader2, CheckCircle2, ArrowRight, ArrowLeft, Mail } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useTranslation } from '@/lib/LanguageContext';
 
 const AVATARS = [
   '/avatars/avatar1.png',
@@ -20,6 +21,7 @@ const AVATARS = [
 
 export default function Register() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { register } = useAuth();
   
   const [step, setStep] = useState(1);
@@ -35,10 +37,10 @@ export default function Register() {
   const [success, setSuccess] = useState('');
 
   const validateStep1 = () => {
-    if (!name.trim()) return setError('Le nom est requis');
-    if (!email.trim() || !email.includes('@')) return setError('Email invalide');
-    if (password.length < 6) return setError('Le mot de passe doit faire au moins 6 caractères');
-    if (password !== confirmPassword) return setError('Les mots de passe ne correspondent pas');
+    if (!name.trim()) return setError(t('auth.fullName') + ' ' + (t('common.required') || 'is required'));
+    if (!email.trim() || !email.includes('@')) return setError(t('auth.invalidEmail') || 'Invalid email');
+    if (password.length < 6) return setError(t('auth.passwordTooShort') || 'Password must be at least 6 characters');
+    if (password !== confirmPassword) return setError(t('auth.confirmPassword') + ' ' + (t('common.error') || 'mismatch'));
     setError('');
     return true;
   };
@@ -53,7 +55,7 @@ export default function Register() {
         setStep(3);
         setError('');
       } catch (err) {
-        setError(err.message || 'Échec de l\'envoi du code');
+        setError(err.message || t('auth.error'));
       } finally {
         setIsLoading(false);
       }
@@ -69,7 +71,7 @@ export default function Register() {
 
     try {
       await register(email, password, name, selectedAvatar, verificationCode);
-      setSuccess('Compte créé avec succès ! Redirection...');
+      setSuccess(t('auth.success'));
       
       const joinToken = sessionStorage.getItem('join_token');
       setTimeout(() => {
@@ -80,7 +82,7 @@ export default function Register() {
         }
       }, 1500);
     } catch (err) {
-      setError(err.message || 'Échec de l\'inscription');
+      setError(err.message || t('auth.error'));
     } finally {
       setIsLoading(false);
     }
@@ -90,11 +92,11 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-12">
       <Card className="w-full max-w-md border-border shadow-xl">
         <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-3xl font-bold font-display">🌍 Home Away</CardTitle>
+          <CardTitle className="text-3xl font-bold font-display">{t('auth.registerTitle')}</CardTitle>
           <CardDescription>
-            {step === 1 && "Commencez votre aventure"}
-            {step === 2 && "Choisissez votre avatar"}
-            {step === 3 && "Vérifiez votre email"}
+            {step === 1 && t('auth.step1Desc')}
+            {step === 2 && t('auth.step2Desc')}
+            {step === 3 && t('auth.step3Desc')}
           </CardDescription>
           
           <div className="flex justify-center gap-2 mt-4">
@@ -123,19 +125,19 @@ export default function Register() {
             {step === 1 && (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Nom complet</Label>
+                  <Label htmlFor="name">{t('auth.fullName')}</Label>
                   <Input id="name" type="text" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t('auth.emailLabel')}</Label>
                   <Input id="email" type="email" placeholder="you@example.com" value={email} onChange={(e) => setEmail(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="password">Mot de passe</Label>
+                  <Label htmlFor="password">{t('auth.passwordLabel')}</Label>
                   <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirmPassword">Confirmez le mot de passe</Label>
+                  <Label htmlFor="confirmPassword">{t('auth.confirmPassword')}</Label>
                   <Input id="confirmPassword" type="password" placeholder="••••••••" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required />
                 </div>
               </>
@@ -170,8 +172,8 @@ export default function Register() {
                   <Mail className="w-8 h-8 text-primary" />
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-semibold">Vérifiez vos messages</h4>
-                  <p className="text-sm text-muted-foreground">Un code à 6 chiffres a été envoyé à {email}</p>
+                  <h4 className="font-semibold">{t('auth.checkMessages')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('auth.codeSent')} {email}</p>
                 </div>
                 <Input
                   type="text"
@@ -183,7 +185,7 @@ export default function Register() {
                   required
                 />
                 <Button type="button" variant="link" className="text-xs" onClick={handleNextStep}>
-                  Renvoyer le code
+                  {t('auth.resendCode')}
                 </Button>
               </div>
             )}
@@ -191,13 +193,13 @@ export default function Register() {
             <div className="flex gap-3 pt-4">
               {step > 1 && (
                 <Button type="button" variant="outline" className="flex-1" onClick={() => setStep(step - 1)} disabled={isLoading}>
-                  <ArrowLeft className="mr-2 h-4 w-4" /> Retour
+                  <ArrowLeft className="mr-2 h-4 w-4" /> {t('auth.back')}
                 </Button>
               )}
               <Button type="submit" className="flex-1" disabled={isLoading || (step === 3 && verificationCode.length !== 6)}>
                 {isLoading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : (
                   <>
-                    {step === 3 ? "Terminer" : "Suivant"}
+                    {step === 3 ? t('auth.finish') : t('auth.next')}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </>
                 )}
@@ -206,9 +208,9 @@ export default function Register() {
 
             {step === 1 && (
               <div className="text-center text-sm pt-4">
-                <span className="text-muted-foreground">Déjà un compte ? </span>
+                <span className="text-muted-foreground">{t('auth.alreadyAccount')} </span>
                 <button type="button" onClick={() => navigate('/login')} className="text-primary hover:underline font-medium">
-                  Se connecter
+                  {t('auth.login')}
                 </button>
               </div>
             )}

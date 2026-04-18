@@ -9,9 +9,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/AuthContext";
+import { useTranslation } from "@/lib/LanguageContext";
 
 export default function AppLayout() {
   const location = useLocation();
+  const { t } = useTranslation();
   const { user, logout } = useAuth();
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
@@ -35,7 +37,7 @@ export default function AppLayout() {
             <Link to="/new-trip">
               <Button size="sm" className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-4">
                 <Plus className="w-4 h-4" />
-                <span className="hidden sm:inline">Nouveau voyage</span>
+                <span className="hidden sm:inline">{t('app.newTrip')}</span>
               </Button>
             </Link>
 
@@ -57,12 +59,12 @@ export default function AppLayout() {
                 <Link to="/profile">
                   <DropdownMenuItem className="cursor-pointer">
                     <User className="w-4 h-4 mr-2" />
-                    Mon profil
+                    {t('app.profile')}
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuItem onClick={() => logout(true)} className="text-destructive">
                   <LogOut className="w-4 h-4 mr-2" />
-                  Déconnexion
+                  {t('app.logout')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { api } from "@/api/apiClient";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format, eachDayOfInterval, parseISO, differenceInDays } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { Plus, Upload, Loader2, BedDouble } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,11 +16,13 @@ import { useTranslation } from "@/lib/LanguageContext";
 
 export default function TripPlanning() {
   const { tripId } = useParams();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
   const [editingStep, setEditingStep] = useState(null);
   const [showUpload, setShowUpload] = useState(false);
+
+  const dateLocale = lang === 'fr' ? fr : enUS;
 
   const { data: trip } = useQuery({
     queryKey: ["trip", tripId],
@@ -147,7 +149,7 @@ export default function TripPlanning() {
         location: trans.departure,
         booking_reference: trans.bookingReference,
         price: trans.price,
-        notes: `${t('planning.arrival')}: ${trans.arrival} at ${format(new Date(trans.arrivalTime), "HH:mm")}`,
+        notes: `${t('planning.arrival')}: ${trans.arrival} ${t('common.at') || 'at'} ${format(new Date(trans.arrivalTime), "HH:mm")}`,
         _sourceType: "transport",
         _sourceId: trans.id,
       });
@@ -206,7 +208,7 @@ export default function TripPlanning() {
         <div>
           <h2 className="font-display text-2xl font-bold text-foreground">{trip.title}</h2>
           <p className="text-muted-foreground text-sm mt-0.5">
-            {format(parseISO(trip.start_date), "d MMMM", { locale: fr })} — {format(parseISO(trip.end_date), "d MMMM yyyy", { locale: fr })}
+            {format(parseISO(trip.start_date), "d MMMM", { locale: dateLocale })} — {format(parseISO(trip.end_date), "d MMMM yyyy", { locale: dateLocale })}
             {trip.destinations?.length > 0 && ` · ${trip.destinations.join(" → ")}`}
           </p>
         </div>
@@ -253,7 +255,7 @@ export default function TripPlanning() {
               >
                 <div className="flex items-center gap-3 mb-4">
                   <h3 className="font-display font-semibold text-lg text-foreground capitalize">
-                    {format(group.date, "EEEE d MMMM", { locale: fr })}
+                    {format(group.date, "EEEE d MMMM", { locale: dateLocale })}
                   </h3>
                   {group.currentAccommodation && (
                     <Badge variant="outline" className="bg-emerald-50 text-emerald-700 border-emerald-200 gap-1.5 py-1">

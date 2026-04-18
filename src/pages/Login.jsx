@@ -7,11 +7,13 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useTranslation } from '@/lib/LanguageContext';
 
 import { useGoogleLogin } from '@react-oauth/google';
 
 export default function Login() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { login, googleLogin } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,7 +35,7 @@ export default function Login() {
         navigate('/');
       }
     } catch (err) {
-      setError(err.message || 'Login failed');
+      setError(err.message || t('auth.error'));
     } finally {
       setIsLoading(false);
     }
@@ -51,7 +53,7 @@ export default function Login() {
         navigate('/');
       }
     } catch (err) {
-      setError(err.message || 'Google login failed');
+      setError(err.message || t('auth.error'));
     } finally {
       setIsLoading(false);
     }
@@ -59,15 +61,15 @@ export default function Login() {
 
   const googleLoginHandler = useGoogleLogin({
     onSuccess: handleGoogleSuccess,
-    onError: () => setError('Google Login Failed'),
+    onError: () => setError(t('auth.error')),
   });
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 px-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-2 text-center">
-          <CardTitle className="text-3xl font-bold">🌍 Home Away</CardTitle>
-          <CardDescription>Centralize your entire trip in one place</CardDescription>
+          <CardTitle className="text-3xl font-bold">{t('auth.loginTitle')}</CardTitle>
+          <CardDescription>{t('auth.loginSubtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-6">
@@ -79,7 +81,7 @@ export default function Login() {
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">{t('auth.emailLabel')}</Label>
               <Input
                 id="email"
                 type="email"
@@ -92,7 +94,7 @@ export default function Login() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">{t('auth.passwordLabel')}</Label>
               <Input
                 id="password"
                 type="password"
@@ -106,7 +108,7 @@ export default function Login() {
 
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Sign In
+              {t('auth.signIn')}
             </Button>
 
             <div className="relative">
@@ -114,7 +116,7 @@ export default function Login() {
                 <span className="w-full border-t border-gray-300"></span>
               </div>
               <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">Or continue with</span>
+                <span className="px-2 bg-white text-gray-500">{t('auth.orContinue')}</span>
               </div>
             </div>
 
@@ -147,13 +149,13 @@ export default function Login() {
             </Button>
 
             <div className="text-center text-sm">
-              <span className="text-gray-600">Don't have an account? </span>
+              <span className="text-gray-600">{t('auth.noAccount')} </span>
               <button
                 type="button"
                 onClick={() => navigate('/register')}
                 className="text-blue-600 hover:underline font-medium"
               >
-                Sign up
+                {t('auth.signUp')}
               </button>
             </div>
           </form>

@@ -61,7 +61,7 @@ export default function Profile() {
       // Since I don't see one, I'll recommend a window reload or just hope the session is updated.
       window.location.reload(); 
     } catch (err) {
-      setError(err.message || 'Erreur lors de la mise à jour');
+      setError(err.message || t('common.error'));
     } finally {
       setIsSaving(false);
     }
@@ -72,7 +72,7 @@ export default function Profile() {
       await api.auth.deleteAccount();
       logout(true);
     } catch (err) {
-      setError(err.message || 'Erreur lors de la suppression du compte');
+      setError(err.message || t('common.error'));
     }
   };
 
@@ -141,7 +141,7 @@ export default function Profile() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="bg-white/10 border-white/20 text-white placeholder:text-white/50 text-xl font-bold h-auto py-1"
-                    placeholder="Votre nom"
+                    placeholder={t('profile.namePlaceholder') || 'Your name'}
                   />
                 ) : (
                   <CardTitle className="text-3xl text-white font-display mb-1">{user.name}</CardTitle>

@@ -48,7 +48,7 @@ export default function NewTrip() {
     try {
       // Validate required fields
       if (!form.name.trim() || !form.start_date || !form.end_date) {
-        setError("Veuillez remplir tous les champs obligatoires");
+        setError(t('common.required'));
         setSaving(false);
         return;
       }
@@ -57,7 +57,7 @@ export default function NewTrip() {
       const startDate = new Date(form.start_date);
       const endDate = new Date(form.end_date);
       if (endDate <= startDate) {
-        setError("La date de fin doit être après la date de début");
+        setError(t('common.invalidDate'));
         setSaving(false);
         return;
       }
@@ -66,11 +66,11 @@ export default function NewTrip() {
       console.log("Creating trip with data:", form);
       const response = await api.trips.create(form);
       console.log("Trip created:", response);
-      
+
       navigate(`/trip/${response.id}/planning`);
     } catch (err) {
       console.error("Trip creation error:", err);
-      setError(err.message || "Erreur lors de la création du voyage");
+      setError(err.message || t('common.error'));
       setSaving(false);
     }
   };
@@ -107,11 +107,11 @@ export default function NewTrip() {
         {/* Trip name */}
         <div className="space-y-2">
           <Label htmlFor="name">
-            Nom du voyage <span className="text-red-500">*</span>
+            {t('newTrip.name')} <span className="text-red-500">*</span>
           </Label>
           <Input
             id="name"
-            placeholder="Ex: Vacances à Barcelone"
+            placeholder={t('newTrip.namePlaceholder') || "Ex: Vacances à Barcelone"}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             className="h-12"
@@ -121,10 +121,10 @@ export default function NewTrip() {
 
         {/* Description */}
         <div className="space-y-2">
-          <Label htmlFor="description">Description</Label>
+          <Label htmlFor="description">{t('newTrip.description')}</Label>
           <Textarea
             id="description"
-            placeholder="Décrivez votre voyage, vos attentes, vos envies..."
+            placeholder={t('newTrip.descriptionPlaceholder') || "Décrivez votre voyage..."}
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             rows={3}
@@ -135,7 +135,7 @@ export default function NewTrip() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="start_date">
-              Date de début <span className="text-red-500">*</span>
+              {t('newTrip.startDate')} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="start_date"
@@ -148,7 +148,7 @@ export default function NewTrip() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="end_date">
-              Date de fin <span className="text-red-500">*</span>
+              {t('newTrip.endDate')} <span className="text-red-500">*</span>
             </Label>
             <Input
               id="end_date"
@@ -163,10 +163,10 @@ export default function NewTrip() {
 
         {/* Location */}
         <div className="space-y-2">
-          <Label htmlFor="location_name">Lieu/Destination</Label>
+          <Label htmlFor="location_name">{t('newTrip.location')}</Label>
           <Input
             id="location_name"
-            placeholder="Ex: Barcelone, Espagne"
+            placeholder={t('dashboard.locationPlaceholder') || "Ex: Barcelone, Espagne"}
             value={form.location_name}
             onChange={(e) => setForm((f) => ({ ...f, location_name: e.target.value }))}
             className="h-12"
@@ -176,7 +176,7 @@ export default function NewTrip() {
         {/* Coordinates (optional) */}
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="location_lat">Latitude (optionnel)</Label>
+            <Label htmlFor="location_lat">{t('newTrip.latitude')}</Label>
             <Input
               id="location_lat"
               type="number"
@@ -188,7 +188,7 @@ export default function NewTrip() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="location_lng">Longitude (optionnel)</Label>
+            <Label htmlFor="location_lng">{t('newTrip.longitude')}</Label>
             <Input
               id="location_lng"
               type="number"
@@ -203,7 +203,7 @@ export default function NewTrip() {
 
         {/* Budget */}
         <div className="space-y-2">
-          <Label htmlFor="budget">Budget global en € (optionnel)</Label>
+          <Label htmlFor="budget">{t('newTrip.budget')}</Label>
           <Input
             id="budget"
             type="number"
@@ -223,7 +223,7 @@ export default function NewTrip() {
             onClick={() => navigate("/")}
             className="flex-1 h-12"
           >
-            Annuler
+            {t('common.cancel')}
           </Button>
           <Button
             type="submit"
@@ -231,7 +231,7 @@ export default function NewTrip() {
             className="flex-1 h-12"
           >
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            {saving ? "Création..." : "Créer le voyage"}
+            {saving ? t('common.creating') : t('common.create')}
           </Button>
         </div>
       </form>

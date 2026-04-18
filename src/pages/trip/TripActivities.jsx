@@ -13,10 +13,13 @@ import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 import { useAuth } from '@/lib/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/lib/LanguageContext';
+import { format, parseISO } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
 
 export default function TripActivities() {
   const { tripId } = useParams();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const dateLocale = lang === 'fr' ? fr : enUS;
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -226,7 +229,7 @@ export default function TripActivities() {
             <CardContent className="space-y-3">
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="w-4 h-4 text-blue-500" />
-                <span>{activity.date}</span>
+                <span>{format(parseISO(activity.date), "d MMM yyyy", { locale: dateLocale })}</span>
               </div>
               {activity.time && (
                 <div className="flex items-center gap-2 text-sm">

@@ -14,10 +14,13 @@ import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 import { useAuth } from '@/lib/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useTranslation } from '@/lib/LanguageContext';
+import { format, parseISO } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
 
 export default function TripAccommodations() {
   const { tripId } = useParams();
-  const { t } = useTranslation();
+  const { t, lang } = useTranslation();
+  const dateLocale = lang === 'fr' ? fr : enUS;
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -232,11 +235,11 @@ export default function TripAccommodations() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{t('accommodations.checkIn')}</p>
-                  <p className="text-sm font-semibold">{acc.checkIn}</p>
+                  <p className="text-sm font-semibold">{format(parseISO(acc.checkIn), "d MMM yyyy", { locale: dateLocale })}</p>
                 </div>
                 <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{t('accommodations.checkOut')}</p>
-                  <p className="text-sm font-semibold">{acc.checkOut}</p>
+                  <p className="text-sm font-semibold">{format(parseISO(acc.checkOut), "d MMM yyyy", { locale: dateLocale })}</p>
                 </div>
               </div>
               
