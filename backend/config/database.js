@@ -185,14 +185,15 @@ export async function createTables() {
     )`
   ];
 
-  for (const query of queries) {
-    try {
-      await pool.query(query);
-    } catch (error) {
-      if (!error.message.includes('already exists')) {
-        console.error('Error creating table:', error.message);
+    for (const query of queries) {
+      try {
+        await pool.query(query);
+      } catch (error) {
+        if (!error.message.includes('already exists')) {
+          console.error('Error creating table:', error.message);
+        }
+      }
     }
-  }
 }
 
 export async function runMigrations() {
