@@ -27,6 +27,7 @@ import TripTransports from '@/pages/trip/TripTransports';
 import TripActivities from '@/pages/trip/TripActivities';
 import TripChat from '@/pages/trip/TripChat';
 import TripMembers from '@/pages/trip/TripMembers';
+import GlobalMap from '@/pages/GlobalMap';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, isAuthenticated } = useAuth();
@@ -62,6 +63,7 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/new-trip" element={<NewTrip />} />
+          <Route path="/global-map" element={<GlobalMap />} />
           <Route path="/trip/:tripId" element={<TripLayout />}>
             <Route path="planning" element={<TripPlanning />} />
             <Route path="documents" element={<TripDocument />} />

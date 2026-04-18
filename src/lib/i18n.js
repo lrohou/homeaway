@@ -29,6 +29,9 @@ const translations = {
     "map.empty": "Aucun lieu à afficher.",
     "map.emptyHint": "Ajoutez des adresses à vos logements, transports ou activités pour les voir apparaître sur la carte.",
     "map.goThere": "Y aller",
+    "map.worldTitle": "Ma mappemonde",
+    "map.worldSubtitle": "Tous vos voyages à travers le monde",
+    "map.allPlaces": "Lieux visités",
 
     // Map categories
     "cat.hotel": "Logement",
@@ -144,6 +147,8 @@ const translations = {
     "profile.language": "Langue",
     "profile.langFr": "Français",
     "profile.langEn": "English",
+    "profile.worldMap": "Carte du monde",
+    "profile.worldMapDesc": "Visualisez tous vos voyages sur une carte interactive",
 
     // Planning
     "planning.departure": "Départ",
@@ -295,6 +300,9 @@ const translations = {
     "map.empty": "No places to display.",
     "map.emptyHint": "Add addresses to your accommodations, transports or activities to see them on the map.",
     "map.goThere": "Go there",
+    "map.worldTitle": "My World Map",
+    "map.worldSubtitle": "All your travels across the globe",
+    "map.allPlaces": "Visited places",
 
     // Map categories
     "cat.hotel": "Accommodation",
@@ -391,6 +399,8 @@ const translations = {
     "profile.language": "Language",
     "profile.langFr": "Français",
     "profile.langEn": "English",
+    "profile.worldMap": "World Map",
+    "profile.worldMapDesc": "View all your trips on an interactive map",
 
     // Planning
     "planning.departure": "Departure",

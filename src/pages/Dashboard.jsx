@@ -1,6 +1,6 @@
-import React, { useMemo } from "react";
+import { useState, useMemo } from "react";
 import { api } from "@/api/apiClient";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueries } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
 import TripCard from "@/components/dashboard/TripCard";
 import NextEventBanner from "@/components/dashboard/NextEventBanner";
@@ -20,18 +20,67 @@ function computeStatus(trip) {
 export default function Dashboard() {
   const { user } = useAuth();
   const { t } = useTranslation();
-  const [filter, setFilter] = React.useState("all");
+  const [filter, setFilter] = useState("all");
 
   const { data: trips = [], isLoading: tripsLoading } = useQuery({
     queryKey: ["trips"],
     queryFn: () => api.trips.list(),
   });
 
-  // TODO: Remplacer allSteps par un endpoint sécurisé si besoin
-  // Pour l'instant, agrégez les steps de tous les voyages
-  const allSteps = useMemo(() => {
-    return trips.flatMap(trip => trip.steps || []);
-  }, [trips]);
+  // Fetch all details for all trips in parallel
+  const tripDetailsQueries = useQueries({
+    queries: trips.flatMap(trip => [
+      {
+        queryKey: ["steps", trip.id],
+        queryFn: () => api.tripSteps.list(trip.id),
+        staleTime: 5 * 60 * 1000,
+      },
+      {
+        queryKey: ["accommodations", trip.id],
+        queryFn: () => api.accommodations.list(trip.id),
+        staleTime: 5 * 60 * 1000,
+      },
+      {
+        queryKey: ["activities", trip.id],
+        queryFn: () => api.activities.list(trip.id),
+        staleTime: 5 * 60 * 1000,
+      },
+      {
+        queryKey: ["transports", trip.id],
+        queryFn: () => api.transports.list(trip.id),
+        staleTime: 5 * 60 * 1000,
+      }
+    ]),
+  });
+
+  const isLoadingDetails = tripDetailsQueries.some(q => q.isLoading);
+
+  // Aggregate all events from all trips
+  const allEvents = useMemo(() => {
+    if (tripsLoading || isLoadingDetails) return [];
+    
+    const events = [];
+    trips.forEach((trip, index) => {
+      const baseIdx = index * 4;
+      const steps = tripDetailsQueries[baseIdx]?.data || [];
+      const accs = tripDetailsQueries[baseIdx + 1]?.data || [];
+      const acts = tripDetailsQueries[baseIdx + 2]?.data || [];
+      const trans = tripDetailsQueries[baseIdx + 3]?.data || [];
+
+      steps.forEach(s => events.push({ ...s, trip_id: trip.id, type: s.type || 'activity', title: s.title }));
+      accs.forEach(a => events.push({ ...a, trip_id: trip.id, type: 'hotel', title: a.name, date: a.checkIn }));
+      acts.forEach(a => events.push({ ...a, trip_id: trip.id, type: 'activity', title: a.name, date: a.date }));
+      trans.forEach(tr => events.push({
+        ...tr,
+        trip_id: trip.id,
+        type: tr.type || 'transport',
+        title: `${tr.departure} → ${tr.arrival}`,
+        date: tr.departureTime?.split('T')[0],
+        start_time: tr.departureTime?.split('T')[1]?.substring(0, 5)
+      }));
+    });
+    return events;
+  }, [trips, tripDetailsQueries, tripsLoading, isLoadingDetails]);
 
   // Compute statuses
   const tripsWithStatus = useMemo(
@@ -41,12 +90,18 @@ export default function Dashboard() {
 
   // Next upcoming event
   const nextEvent = useMemo(() => {
-    const now = new Date().toISOString().split("T")[0];
-    const upcoming = allSteps
-      .filter((s) => s.date >= now)
-      .sort((a, b) => (a.date + (a.start_time || "")).localeCompare(b.date + (b.start_time || "")));
+    const todayStr = new Date().toISOString().split("T")[0];
+    const nowTime = new Date().toTimeString().substring(0, 5);
+    
+    const upcoming = allEvents
+      .filter((e) => e.date > todayStr || (e.date === todayStr && (e.start_time || "23:59") >= nowTime))
+      .sort((a, b) => {
+        const dateA = a.date + (a.start_time || "00:00");
+        const dateB = b.date + (b.start_time || "00:00");
+        return dateA.localeCompare(dateB);
+      });
     return upcoming[0] || null;
-  }, [allSteps]);
+  }, [allEvents]);
 
   const nextEventTrip = useMemo(
     () => (nextEvent ? trips.find((t) => t.id === nextEvent.trip_id) : null),

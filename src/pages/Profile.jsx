@@ -234,6 +234,20 @@ export default function Profile() {
               </div>
             </div>
 
+            <div className="pt-4 border-t border-slate-100">
+              <Button
+                variant="outline"
+                onClick={() => navigate('/global-map')}
+                className="w-full rounded-2xl h-14 border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-100 hover:text-blue-800 transition-all group"
+              >
+                < Globe className="w-5 h-5 mr-3 group-hover:rotate-12 transition-transform" />
+                <div className="text-left">
+                  <p className="font-bold text-sm leading-none mb-1">{t('profile.worldMap')}</p>
+                  <p className="text-[11px] text-blue-600/70 font-medium">{t('profile.worldMapDesc')}</p>
+                </div>
+              </Button>
+            </div>
+
             {/* Actions */}
             <div className="pt-8 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
               {isEditing ? (
