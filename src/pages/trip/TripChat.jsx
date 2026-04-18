@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -54,16 +55,30 @@ export default function TripChat() {
   }, [messages, isFullScreen]);
 
   // Handle window resize (mobile keyboard)
+  const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
+
   useEffect(() => {
+    if (!isFullScreen) return;
+
     const handleResize = () => {
-      if (isFullScreen) {
-        // Small delay to let the layout settle
-        setTimeout(() => scrollToBottom('auto'), 100);
-      }
+      const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      setViewportHeight(height);
+      // Small delay to let the layout settle
+      setTimeout(() => scrollToBottom('auto'), 100);
     };
 
+    window.visualViewport?.addEventListener('resize', handleResize);
+    window.visualViewport?.addEventListener('scroll', handleResize);
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    
+    // Initial call
+    handleResize();
+
+    return () => {
+      window.visualViewport?.removeEventListener('resize', handleResize);
+      window.visualViewport?.removeEventListener('scroll', handleResize);
+      window.removeEventListener('resize', handleResize);
+    };
   }, [isFullScreen]);
 
   const handleSendMessage = (e) => {
@@ -102,12 +117,13 @@ export default function TripChat() {
 
   return (
       <AnimatePresence>
-        {isFullScreen ? (
+        {isFullScreen ? createPortal(
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed inset-0 z-[9999] bg-white flex flex-col h-[100dvh] w-full overflow-hidden"
+            className="fixed left-0 right-0 top-0 z-[100000] bg-white flex flex-col overflow-hidden"
+            style={{ height: viewportHeight }}
           >
             <div className="border-b bg-white py-4 px-6 flex flex-row items-center justify-between shadow-sm shrink-0">
               <div className="flex items-center gap-2">
@@ -140,10 +156,11 @@ export default function TripChat() {
               {renderMessages()}
             </div>
 
-            <div className="border-t p-4 pb-10 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)]">
+            <div className="border-t p-4 pb-8 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] shrink-0">
               {renderInput()}
             </div>
-          </motion.div>
+          </motion.div>,
+          document.body
         ) : (
           <Card className="flex flex-col h-[600px] border border-border shadow-md rounded-xl overflow-hidden">
             <CardHeader className="border-b bg-muted/20 py-3 px-4 flex flex-row items-center justify-between space-y-0">
