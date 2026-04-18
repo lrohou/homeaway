@@ -161,6 +161,15 @@ export default function TripMap() {
   const markersRef = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  
+  // High-stability: Keep the same physical DOM element to avoid WebGL context loss
+  const persistentMapContainer = useMemo(() => {
+    const div = document.createElement('div');
+    div.style.width = '100%';
+    div.style.height = '100%';
+    div.className = 'persistent-map-canvas';
+    return div;
+  }, []);
 
   const { data: steps = [], isLoading: stepsLoading } = useQuery({
     queryKey: ["steps", tripId],
@@ -247,7 +256,7 @@ export default function TripMap() {
     if (!mapContainerRef.current || mapRef.current) return;
 
     const map = new maplibregl.Map({
-      container: mapContainerRef.current,
+      container: persistentMapContainer,
       style: MAPTILER_STYLE,
       center: [2.3522, 48.8566], // Default Paris
       zoom: 4,
@@ -273,12 +282,18 @@ export default function TripMap() {
     };
   }, []);
 
-  // Handle map resize on fullscreen toggle
+  // Handle map container migration and resize on fullscreen toggle
   useEffect(() => {
-    if (mapRef.current) {
-      setTimeout(() => {
+    if (mapContainerRef.current) {
+      // Move our persistent map div into the currently active container (portal or inline)
+      mapContainerRef.current.appendChild(persistentMapContainer);
+      
+      if (mapRef.current) {
+        // Multi-stage resize to handle animation frames on mobile
         mapRef.current.resize();
-      }, 100);
+        const timer = setTimeout(() => mapRef.current?.resize(), 100);
+        return () => clearTimeout(timer);
+      }
     }
   }, [isFullScreen]);
 
