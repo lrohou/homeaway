@@ -28,6 +28,11 @@ export default function TripChat() {
     queryFn: () => api.members.list(tripId),
   });
 
+  const { data: trip } = useQuery({
+    queryKey: ['trip', tripId],
+    queryFn: () => api.trips.get(tripId),
+  });
+
   const createMessageMutation = useMutation({
     mutationFn: (text) => api.messages.send(tripId, { text }),
     onSuccess: () => {
@@ -84,12 +89,12 @@ export default function TripChat() {
 
       <Card className={cn(
         "flex flex-col border border-border shadow-md transition-all duration-300 overflow-hidden",
-        isFullScreen ? "fixed inset-0 z-[100] rounded-none h-full" : "h-[600px] rounded-xl"
+        isFullScreen ? "fixed inset-0 z-[100] rounded-none h-[100dvh] w-full" : "h-[600px] rounded-xl"
       )}>
-        <CardHeader className="border-b bg-muted/20 py-3 px-4 flex flex-row items-center justify-between space-y-0">
-          <CardTitle className="flex items-center gap-2 text-lg">
+        <CardHeader className="border-b bg-white py-3 px-4 flex flex-row items-center justify-between space-y-0 shadow-sm z-10">
+          <CardTitle className="flex items-center gap-2 text-lg font-bold">
             <MessageCircle className="w-5 h-5 text-primary" />
-            Discussion
+            {isFullScreen ? (trip?.name || 'Discussion') : 'Discussion'}
           </CardTitle>
           <div className="flex items-center gap-1">
             <Button
@@ -154,7 +159,7 @@ export default function TripChat() {
           )}
         </div>
 
-        <div className="border-t p-4 bg-card">
+        <div className={cn("border-t p-4 bg-white shadow-sm", isFullScreen ? "pb-8" : "bg-card")}>
           <form onSubmit={handleSendMessage} className="flex gap-2">
             <Input
               type="text"

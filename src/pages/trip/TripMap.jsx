@@ -4,7 +4,7 @@ import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon } from "lucide-react";
+import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon, Maximize2, Minimize2 } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTranslation } from "@/lib/LanguageContext";
@@ -401,9 +401,14 @@ export default function TripMap() {
             variant="outline"
             size="icon"
             onClick={() => setIsFullScreen(!isFullScreen)}
-            className="rounded-full border-slate-200"
+            className="rounded-full border-slate-200 shadow-sm hover:bg-slate-50"
+            title={isFullScreen ? t('common.reduce') || 'Réduire' : t('common.expand') || 'Agrandir'}
           >
-            <Sparkles className={cn("w-4 h-4", isFullScreen ? "text-blue-600 fill-blue-50" : "text-slate-500")} />
+            {isFullScreen ? (
+              <Minimize2 className="w-4 h-4 text-blue-600" />
+            ) : (
+              <Maximize2 className="w-4 h-4 text-slate-500" />
+            )}
           </Button>
         </div>
       </div>
@@ -414,14 +419,22 @@ export default function TripMap() {
         isFullScreen ? "fullscreen-overlay" : ""
       )}>
         {isFullScreen && (
-          <div className="bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center">
-            <h3 className="font-bold flex items-center gap-2">
+          <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm z-20">
+            <h3 className="font-bold flex items-center gap-2 text-slate-800">
               <MapPin className="w-4 h-4 text-blue-500" />
-              {t('map.title')}
+              {trip?.name || t('map.title')}
             </h3>
-            <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(false)} className="rounded-full">
-              {t('common.close') || 'Fermer'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsFullScreen(false)} 
+                className="rounded-full gap-2 border-slate-200 font-semibold"
+              >
+                <Minimize2 className="w-4 h-4" />
+                {t('common.reduce') || 'Réduire'}
+              </Button>
+            </div>
           </div>
         )}
         <div

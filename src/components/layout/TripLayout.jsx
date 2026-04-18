@@ -70,12 +70,14 @@ export default function TripLayout() {
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" id="scroll-fade-right" />
           
           <div 
-            className="flex gap-1 overflow-x-auto pb-0 scrollbar-hide relative touch-pan-x"
+            className="flex flex-nowrap gap-1 overflow-x-auto pb-2 relative touch-pan-x overscroll-x-contain"
             onScroll={(e) => {
               const left = e.target.scrollLeft > 10;
               const right = e.target.scrollLeft < (e.target.scrollWidth - e.target.clientWidth - 10);
-              document.getElementById('scroll-fade-left').style.opacity = left ? '1' : '0';
-              document.getElementById('scroll-fade-right').style.opacity = right ? '1' : '0';
+              const fadeLeft = document.getElementById('scroll-fade-left');
+              const fadeRight = document.getElementById('scroll-fade-right');
+              if (fadeLeft) fadeLeft.style.opacity = left ? '1' : '0';
+              if (fadeRight) fadeRight.style.opacity = right ? '1' : '0';
             }}
           >
             {tabs.map((tab) => {
