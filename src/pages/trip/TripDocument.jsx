@@ -14,24 +14,28 @@ import {
 } from "@/components/ui/dialog";
 import { FileText, Upload, Plus, ExternalLink, Trash2, Loader2, Ticket, CreditCard, Shield, FileCheck } from "lucide-react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { fr, enUS } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/lib/LanguageContext";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
-const typeConfig = {
-  ticket: { label: "Billet", icon: Ticket, color: "bg-blue-500/10 text-blue-600" },
-  reservation: { label: "Réservation", icon: FileCheck, color: "bg-emerald-500/10 text-emerald-600" },
-  passport: { label: "Passeport", icon: Shield, color: "bg-purple-500/10 text-purple-600" },
-  invoice: { label: "Facture", icon: CreditCard, color: "bg-orange-500/10 text-orange-600" },
-  insurance: { label: "Assurance", icon: Shield, color: "bg-teal-500/10 text-teal-600" },
-  other: { label: "Autre", icon: FileText, color: "bg-gray-500/10 text-gray-600" },
-};
+const getTypeConfig = (t) => ({
+  ticket: { label: t('documents.ticket'), icon: Ticket, color: "bg-blue-500/10 text-blue-600" },
+  reservation: { label: t('documents.reservation'), icon: FileCheck, color: "bg-emerald-500/10 text-emerald-600" },
+  passport: { label: t('documents.passport'), icon: Shield, color: "bg-purple-500/10 text-purple-600" },
+  invoice: { label: t('documents.invoice'), icon: CreditCard, color: "bg-orange-500/10 text-orange-600" },
+  insurance: { label: t('documents.insurance'), icon: Shield, color: "bg-teal-500/10 text-teal-600" },
+  other: { label: t('documents.other'), icon: FileText, color: "bg-gray-500/10 text-gray-600" },
+});
 
 export default function TripDocuments() {
   const { tripId } = useParams();
+  const { t, lang } = useTranslation();
+  const dateLocale = lang === 'fr' ? fr : enUS;
   const queryClient = useQueryClient();
+  const typeConfig = getTypeConfig(t);
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState({ title: "", type: "other" });
   const [file, setFile] = useState(null);
@@ -79,14 +83,14 @@ export default function TripDocuments() {
   return (
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h2 className="text-3xl font-bold">Documents</h2>
+        <h2 className="text-3xl font-bold">{t('documents.title')}</h2>
         <Button
           size="sm"
           className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full w-full sm:w-auto h-11 sm:h-9 shadow-md"
           onClick={() => setShowAdd(true)}
         >
           <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
-          Ajouter
+          {t('expenses.add') || 'Ajouter'}
         </Button>
       </div>
 
@@ -140,7 +144,7 @@ export default function TripDocuments() {
                     {config.label}
                   </Badge>
                   <span className="text-xs text-muted-foreground">
-                    {format(new Date(doc.created_date), "d MMM yyyy", { locale: fr })}
+                    {format(new Date(doc.created_date), "d MMM yyyy", { locale: dateLocale })}
                   </span>
                 </div>
               </motion.div>

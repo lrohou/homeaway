@@ -70,10 +70,10 @@ export default function TripLayout() {
 
   return (
     <div>
-      <div className="mb-6">
+      <div className="mb-2">
         <Link
           to="/"
-          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors mb-2"
         >
           <ArrowLeft className="w-4 h-4" />
           {t('trip.backToTrips')}

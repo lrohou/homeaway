@@ -115,6 +115,13 @@ const translations = {
     "documents.location": "Lieu",
     "documents.locationPlaceholder": "Chercher l'adresse du document...",
     "documents.empty": "Aucun document pour le moment",
+    "documents.type": "Type de document",
+    "documents.ticket": "Billet",
+    "documents.reservation": "Réservation",
+    "documents.passport": "Passeport",
+    "documents.invoice": "Facture",
+    "documents.insurance": "Assurance",
+    "documents.other": "Autre",
 
     // Profile
     "profile.title": "Mon Profil",
@@ -520,6 +527,13 @@ const translations = {
     "documents.location": "Location",
     "documents.locationPlaceholder": "Search document location...",
     "documents.empty": "No documents added yet",
+    "documents.type": "Document type",
+    "documents.ticket": "Ticket",
+    "documents.reservation": "Reservation",
+    "documents.passport": "Passport",
+    "documents.invoice": "Invoice",
+    "documents.insurance": "Insurance",
+    "documents.other": "Other",
   },
 };
 

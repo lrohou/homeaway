@@ -71,7 +71,7 @@ export default function Dashboard() {
         </h1>
         <p className="text-muted-foreground">
           {t('dashboard.welcome')} {user?.name ? `, ${user.name.split(" ")[0]}` : ""}.
-          {t('dashboard.subtitle')}
+          '\n'.{t('dashboard.subtitle')}
         </p>
       </motion.div>
 
