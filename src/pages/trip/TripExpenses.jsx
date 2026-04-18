@@ -251,26 +251,26 @@ export default function TripExpenses() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-3xl font-bold">{t('expenses.title')}</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           {tripMembers.length > 1 && (
             <Button
               variant="outline"
               size="sm"
-              className="gap-1.5 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full"
+              className="gap-1.5 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full w-full sm:w-auto h-11 sm:h-9"
               onClick={() => setShowBalance(true)}
             >
-              <Scale className="w-4 h-4" />
+              <Scale className="w-5 h-5 sm:w-4 sm:h-4" />
               {t('expenses.balance')}
             </Button>
           )}
           <Button
             size="sm"
-            className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full"
+            className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full w-full sm:w-auto h-11 sm:h-9 shadow-md"
             onClick={() => setShowAdd(true)}
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
             {t('expenses.add')}
           </Button>
         </div>

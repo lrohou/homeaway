@@ -404,12 +404,12 @@ export default function TripMap() {
             variant="outline"
             size="icon"
             onClick={() => setIsFullScreen(!isFullScreen)}
-            className="rounded-full border-slate-200 shadow-sm"
+            className="rounded-full border-slate-200 shadow-lg h-11 w-11 bg-white"
           >
             {isFullScreen ? (
-              <Minimize2 className="w-4 h-4 text-blue-600" />
+              <Minimize2 className="w-5 h-5 text-blue-600" />
             ) : (
-              <Maximize2 className="w-4 h-4 text-slate-500" />
+              <Maximize2 className="w-5 h-5 text-slate-600" />
             )}
           </Button>
         </div>
@@ -423,8 +423,8 @@ export default function TripMap() {
               <MapPin className="w-4 h-4 text-blue-500" />
               {t('map.title')}
             </h3>
-            <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(false)} className="rounded-full h-8 w-8">
-              <X className="w-4 h-4" />
+            <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(false)} className="rounded-full h-11 w-11 bg-slate-100/50">
+              <X className="w-5 h-5 text-slate-600" />
             </Button>
           </div>
           <div

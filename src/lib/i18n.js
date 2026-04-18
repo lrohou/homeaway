@@ -182,6 +182,22 @@ const translations = {
     // Common
     "common.loading": "Chargement...",
     "common.required": "Requis",
+
+    //Documents
+    "documents.title": "Documents",
+    "documents.subtitle": "Gérez vos documents de voyage",
+    "documents.add": "Ajouter un document",
+    "documents.new": "Nouveau document",
+    "documents.newDesc": "Ajoutez un document à votre voyage",
+    "documents.name": "Nom du document",
+    "documents.date": "Date",
+    "documents.time": "Heure",
+    "documents.duration": "Durée (en minutes)",
+    "documents.description": "Description de l'activité",
+    "documents.price": "Prix",
+    "documents.location": "Lieu",
+    "documents.locationPlaceholder": "Chercher l'adresse de l'activité...",
+    "documents.empty": "Aucune activité pour le moment",
   },
 
   en: {
@@ -366,6 +382,22 @@ const translations = {
     // Common
     "common.loading": "Loading...",
     "common.required": "Required",
+
+    //Documents
+    "documents.title": "Documents",
+    "documents.subtitle": "Manage your travel documents",
+    "documents.add": "Add document",
+    "documents.new": "New document",
+    "documents.newDesc": "Add a document to your trip",
+    "documents.name": "Document name",
+    "documents.date": "Date",
+    "documents.time": "Time",
+    "documents.duration": "Duration (minutes)",
+    "documents.description": "Document description",
+    "documents.price": "Price",
+    "documents.location": "Location",
+    "documents.locationPlaceholder": "Search document location...",
+    "documents.empty": "No documents added yet",
   },
 };
 

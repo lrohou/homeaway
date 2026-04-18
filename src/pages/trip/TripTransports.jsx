@@ -106,15 +106,15 @@ export default function TripTransports() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t('transports.title')}</h1>
           <p className="text-gray-600 mt-1">{t('transports.subtitle')}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2">
-              <Plus className="w-4 h-4" />
+            <Button className="gap-2 w-full sm:w-auto h-11 sm:h-auto shadow-md">
+              <Plus className="w-5 h-5" />
               {t('transports.add')}
             </Button>
           </DialogTrigger>

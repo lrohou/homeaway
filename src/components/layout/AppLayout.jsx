@@ -42,7 +42,7 @@ export default function AppLayout() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="focus:outline-none">
-                  <Avatar className="w-9 h-9 border-2 border-border hover:border-accent transition-colors cursor-pointer">
+                  <Avatar className="w-11 h-11 border-2 border-border hover:border-accent transition-colors cursor-pointer">
                     <AvatarImage src={user?.avatar} />
                     <AvatarFallback className="bg-secondary text-secondary-foreground text-sm font-medium">
                       {initials}

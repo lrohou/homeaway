@@ -124,12 +124,12 @@ export default function TripChat() {
               <MessageCircle className="w-5 h-5 text-primary" />
               <CardTitle className="text-lg">Discussion</CardTitle>
             </div>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => setIsFullScreen(false)}>
-                <Minimize2 className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full bg-slate-100/50" onClick={() => setIsFullScreen(false)}>
+                <Minimize2 className="w-5 h-5 text-slate-600" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-9 w-9 rounded-full" onClick={() => setIsFullScreen(false)}>
-                <X className="w-4 h-4" />
+              <Button variant="ghost" size="icon" className="h-11 w-11 rounded-full bg-slate-100/50" onClick={() => setIsFullScreen(false)}>
+                <X className="w-5 h-5 text-slate-600" />
               </Button>
             </div>
           </div>
@@ -153,10 +153,10 @@ export default function TripChat() {
             <Button
               variant="ghost"
               size="icon"
-              className="h-8 w-8 rounded-full"
+              className="h-10 w-10 rounded-full bg-slate-100/50"
               onClick={() => setIsFullScreen(true)}
             >
-              <Maximize2 className="w-4 h-4" />
+              <Maximize2 className="w-5 h-5 text-primary" />
             </Button>
           </CardHeader>
 

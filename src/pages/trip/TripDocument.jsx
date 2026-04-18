@@ -78,14 +78,14 @@ export default function TripDocuments() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-3xl font-bold">Documents</h2>
         <Button
           size="sm"
-          className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90"
+          className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full w-full sm:w-auto h-11 sm:h-9 shadow-md"
           onClick={() => setShowAdd(true)}
         >
-          <Plus className="w-4 h-4" />
+          <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
           Ajouter
         </Button>
       </div>
@@ -99,7 +99,7 @@ export default function TripDocuments() {
       ) : documents.length === 0 ? (
         <div className="text-center py-16">
           <FileText className="w-12 h-12 mx-auto text-muted-foreground/50 mb-3" />
-          <p className="text-muted-foreground">Aucun document pour ce voyage</p>
+          <p className="text-muted-foreground">{t('documents.empty')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -153,11 +153,11 @@ export default function TripDocuments() {
       <Dialog open={showAdd} onOpenChange={setShowAdd}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-display text-xl">Ajouter un document</DialogTitle>
+            <DialogTitle className="font-display text-xl">{t('documents.add')}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleAdd} className="space-y-4 mt-2">
             <div className="space-y-2">
-              <Label>Fichier *</Label>
+              <Label>{t('documents.name')} *</Label>
               <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-accent/50 transition-colors">
                 <Input
                   type="file"
@@ -171,22 +171,22 @@ export default function TripDocuments() {
                   ) : (
                     <div className="space-y-1">
                       <Upload className="w-6 h-6 mx-auto text-muted-foreground" />
-                      <p className="text-sm text-muted-foreground">Cliquez pour sélectionner</p>
+                      <p className="text-sm text-muted-foreground">{t('documents.add')}</p>
                     </div>
                   )}
                 </label>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Titre</Label>
+              <Label>{t('documents.name')} *</Label>
               <Input
-                placeholder="Nom du document"
+                placeholder={t('documents.name')}
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
               />
             </div>
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{t('documents.type')} *</Label>
               <Select value={form.type} onValueChange={(v) => setForm((f) => ({ ...f, type: v }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -202,7 +202,7 @@ export default function TripDocuments() {
               className="w-full bg-accent text-accent-foreground hover:bg-accent/90"
             >
               {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Ajouter
+              {t('documents.add')}
             </Button>
           </form>
         </DialogContent>

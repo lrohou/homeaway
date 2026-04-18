@@ -61,15 +61,15 @@ export default function TripMembers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">{t('members.title')}</h1>
           <p className="text-muted-foreground mt-1">{t('members.subtitle')}</p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md transition-all active:scale-95">
-              <UserPlus className="w-4 h-4" />
+            <Button className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md transition-all active:scale-95 w-full sm:w-auto h-11 sm:h-auto">
+              <UserPlus className="w-5 h-5 sm:w-4 sm:h-4" />
               {t('members.invite')}
             </Button>
           </DialogTrigger>

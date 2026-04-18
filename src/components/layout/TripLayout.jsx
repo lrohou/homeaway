@@ -127,13 +127,13 @@ export default function TripLayout() {
                   to={`/trip/${tripId}/${tab.path}`}
                   data-active={isActive}
                   className={cn(
-                    "flex items-center gap-2 px-4 py-3.5 text-sm font-medium transition-all whitespace-nowrap -mb-px border-b-2 relative shrink-0",
+                    "flex flex-col items-center justify-center gap-1.5 px-5 py-4 text-xs font-semibold transition-all whitespace-nowrap -mb-px border-b-2 relative shrink-0",
                     isActive
                       ? "border-accent text-accent"
                       : "border-transparent text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  <Icon className={cn("w-4 h-4", isActive ? "animate-pulse" : "")} />
+                  <Icon className={cn("w-5 h-5", isActive ? "animate-pulse" : "")} />
                   {t(tab.key)}
                   {isActive && (
                     <motion.div
@@ -172,12 +172,22 @@ export default function TripLayout() {
         </AnimatePresence>
 
         {/* PERSISTENT MAP - Outside AnimatePresence to prevent unmounting/WebGL loss */}
-        <div className={cn(
-          "absolute inset-0 z-[30] bg-background pointer-events-none opacity-0 transition-opacity duration-300",
-          currentTab === 'map' && "pointer-events-auto opacity-100 relative h-auto"
-        )}>
+        <motion.div 
+          className={cn(
+            "absolute inset-0 z-[30] bg-background pointer-events-none opacity-0 transition-opacity duration-300",
+            currentTab === 'map' && "pointer-events-auto opacity-100 relative h-auto"
+          )}
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.2}
+          onDragEnd={(e, { offset, velocity }) => {
+            const swipe = offset.x;
+            if (swipe < -100) handleSwipe('left');
+            else if (swipe > 100) handleSwipe('right');
+          }}
+        >
           <TripMap />
-        </div>
+        </motion.div>
       </div>
     </div>
   );
