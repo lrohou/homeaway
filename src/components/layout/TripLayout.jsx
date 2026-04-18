@@ -8,6 +8,8 @@ import { api } from "@/api/apiClient";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/LanguageContext";
 
+import TripMap from '@/pages/trip/TripMap';
+
 const tabs = [
   { key: "tab.planning", path: "planning", icon: CalendarDays },
   { key: "tab.accommodations", path: "accommodations", icon: Hotel },
@@ -165,9 +167,24 @@ export default function TripLayout() {
             }}
             className="touch-pan-y"
           >
-            <Outlet />
+            {currentTab === 'map' ? (
+              <div className="py-20 text-center text-muted-foreground animate-pulse">
+                {/* Visual placeholder while Map is overlayed from outside AnimatePresence */}
+                {t('map.loading')}
+              </div>
+            ) : (
+              <Outlet />
+            )}
           </motion.div>
         </AnimatePresence>
+
+        {/* PERSISTENT MAP - Outside AnimatePresence to prevent unmounting/WebGL loss */}
+        <div className={cn(
+          "absolute inset-0 z-[30] bg-background pointer-events-none opacity-0 transition-opacity duration-300",
+          currentTab === 'map' && "pointer-events-auto opacity-100 relative h-auto"
+        )}>
+           <TripMap />
+        </div>
       </div>
     </div>
   );

@@ -65,7 +65,7 @@ const AuthenticatedApp = () => {
           <Route path="/trip/:tripId" element={<TripLayout />}>
             <Route path="planning" element={<TripPlanning />} />
             <Route path="documents" element={<TripDocument />} />
-            <Route path="map" element={<TripMap />} />
+            <Route path="map" element={<div />} />
             <Route path="expenses" element={<TripExpenses />} />
             <Route path="accommodations" element={<TripAccommodations />} />
             <Route path="transports" element={<TripTransports />} />

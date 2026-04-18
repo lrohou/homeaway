@@ -307,20 +307,28 @@ export default function TripMap() {
   useEffect(() => {
     if (!mapRef.current) return;
     
-    // Multiple attempts to ensure the canvas matches new dimensions
-    const triggerResize = () => {
-      mapRef.current?.resize();
+    // Aggressive resize loop for mobile browser layout shifts
+    let startTime = Date.now();
+    const duration = 1500; // Keep resizing for 1.5s to cover all transitions
+
+    const resizeLoop = () => {
+      if (!mapRef.current) return;
+      mapRef.current.resize();
+      
+      if (Date.now() - startTime < duration) {
+        requestAnimationFrame(resizeLoop);
+      }
     };
 
-    triggerResize();
-    const t1 = setTimeout(triggerResize, 100);
-    const t2 = setTimeout(triggerResize, 500);
-    const t3 = setTimeout(triggerResize, 1000);
+    requestAnimationFrame(resizeLoop);
+
+    // Also use timeouts as fallback
+    const t1 = setTimeout(() => { startTime = Date.now(); requestAnimationFrame(resizeLoop); }, 100);
+    const t2 = setTimeout(() => { startTime = Date.now(); requestAnimationFrame(resizeLoop); }, 500);
 
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
-      clearTimeout(t3);
     };
   }, [isFullScreen, placeholderRect]);
 
@@ -480,13 +488,24 @@ export default function TripMap() {
               ? "inset-0 z-[100000] flex flex-col" 
               : "z-[50] rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto"
           )}
-          style={!isFullScreen && placeholderRect ? {
-            left: placeholderRect.left,
-            top: placeholderRect.top,
-            width: placeholderRect.width,
-            height: placeholderRect.height,
-            position: 'fixed'
-          } : undefined}
+          style={isFullScreen ? {
+            width: '100vw',
+            height: '100dvh',
+            top: 0,
+            left: 0,
+            zIndex: 2147483647,
+            opacity: 1,
+            display: 'flex'
+          } : {
+            left: placeholderRect?.left || 0,
+            top: placeholderRect?.top || 0,
+            width: placeholderRect?.width || '100%',
+            height: placeholderRect?.height || '500px',
+            position: 'fixed',
+            visibility: placeholderRect ? 'visible' : 'hidden',
+            zIndex: 2147483647,
+            opacity: 1
+          }}
         >
           {isFullScreen && (
             <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm shrink-0">

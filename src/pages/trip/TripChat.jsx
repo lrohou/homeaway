@@ -63,7 +63,13 @@ export default function TripChat() {
     const handleResize = () => {
       if (window.visualViewport) {
         setViewportHeight(window.visualViewport.height);
-        // Track offset to counter-act browser's automatic scrolling
+        
+        // LOCK Viewport: On some mobile browsers, the browser scrolls the document
+        // to "help" the input focus. We undo this to keep our fixed overlay pinned correctly.
+        if (isFullScreen) {
+          window.scrollTo(0, 0);
+        }
+
         const chatElement = document.getElementById('fullscreen-chat-overlay');
         if (chatElement) {
           chatElement.style.top = `${window.visualViewport.offsetTop}px`;
@@ -71,7 +77,10 @@ export default function TripChat() {
       } else {
         setViewportHeight(window.innerHeight);
       }
-      setTimeout(() => scrollToBottom('auto'), 150);
+      setTimeout(() => {
+        if (isFullScreen) window.scrollTo(0, 0);
+        scrollToBottom('auto');
+      }, 100);
     };
 
     document.body.classList.add('body-lock');
@@ -126,12 +135,9 @@ export default function TripChat() {
   return (
       <AnimatePresence>
         {isFullScreen ? createPortal(
-          <motion.div
+          <div
             id="fullscreen-chat-overlay"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            className="fixed left-0 right-0 z-[100000] bg-white flex flex-col overflow-hidden shadow-2xl"
+            className="fixed left-0 right-0 z-[2147483647] bg-white flex flex-col overflow-hidden shadow-2xl transition-none"
             style={{ 
               height: viewportHeight,
               top: window.visualViewport?.offsetTop || 0
@@ -171,7 +177,7 @@ export default function TripChat() {
             <div className="border-t p-3 pb-6 bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)] shrink-0">
               {renderInput()}
             </div>
-          </motion.div>,
+          </div>,
           document.body
         ) : (
           <Card className="flex flex-col h-[600px] border border-border shadow-md rounded-xl overflow-hidden">
