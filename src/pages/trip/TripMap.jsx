@@ -1,10 +1,11 @@
 import React, { useRef, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams } from "react-router-dom";
 import { api } from "@/api/apiClient";
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { MapPin, Loader2, Navigation, BedDouble, Plane, Sparkles, Route as RouteIcon } from "lucide-react";
+import { MapPin, Loader2, Navigation, BedDouble, Plane, Maximize2, Minimize2, X, Route as RouteIcon } from "lucide-react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useTranslation } from "@/lib/LanguageContext";
@@ -321,19 +322,6 @@ export default function TripMap() {
     });
   }, [allGeoItems, mapLoaded, t]);
 
-  const isLoading = stepsLoading || accLoading || actLoading || transLoading;
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-20">
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-          <p className="text-sm text-muted-foreground">{t('map.loading')}</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-5">
       <style>{`
@@ -401,63 +389,45 @@ export default function TripMap() {
             variant="outline"
             size="icon"
             onClick={() => setIsFullScreen(!isFullScreen)}
-            className="rounded-full border-slate-200"
+            className="rounded-full border-slate-200 shadow-sm"
           >
-            <Sparkles className={cn("w-4 h-4", isFullScreen ? "text-blue-600 fill-blue-50" : "text-slate-500")} />
+            {isFullScreen ? (
+              <Minimize2 className="w-4 h-4 text-blue-600" />
+            ) : (
+              <Maximize2 className="w-4 h-4 text-slate-500" />
+            )}
           </Button>
         </div>
       </div>
 
-      {/* Map Container */}
-      <div className={cn(
-        "relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 transition-all duration-300",
-        isFullScreen ? "fullscreen-overlay" : ""
-      )}>
-        {isFullScreen && (
-          <div className="bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center">
+      {/* Map Container - Uses Portal for fullscreen to escape parent transforms */}
+      {isFullScreen ? createPortal(
+        <div className="fixed inset-0 z-[9999] bg-white flex flex-col overflow-hidden">
+          <div className="bg-white/80 backdrop-blur-md border-b p-4 flex justify-between items-center shrink-0">
             <h3 className="font-bold flex items-center gap-2">
               <MapPin className="w-4 h-4 text-blue-500" />
               {t('map.title')}
             </h3>
-            <Button variant="ghost" size="sm" onClick={() => setIsFullScreen(false)} className="rounded-full">
-              {t('common.close') || 'Fermer'}
+            <Button variant="ghost" size="icon" onClick={() => setIsFullScreen(false)} className="rounded-full h-8 w-8">
+              <X className="w-4 h-4" />
             </Button>
           </div>
-        )}
-        <div
-          ref={mapContainerRef}
-          className={cn("w-full map-container", isFullScreen ? "" : "h-[500px] sm:h-[650px]")}
-          style={{ minHeight: isFullScreen ? "0" : "400px" }}
-        />
-
-        {/* Legend overlay */}
-        {Object.keys(categoryCounts).length > 0 && (
-          <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit">
-            <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md rounded-xl border border-slate-200/60 shadow-lg">
-              {Object.entries(categoryCounts).map(([type, count]) => {
-                const cat = CATEGORIES[type] || CATEGORIES.other;
-                return (
-                  <div
-                    key={type}
-                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors hover:bg-slate-50"
-                  >
-                    <span
-                      className="w-3 h-3 rounded-full shadow-sm"
-                      style={{ background: cat.color }}
-                    />
-                    <span className="text-xs font-medium text-slate-600">
-                      {t(cat.key)}
-                    </span>
-                    <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                      {count}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
+          <div
+            ref={mapContainerRef}
+            className="w-full flex-1 map-container"
+          />
+          {renderLegend()}
+        </div>,
+        document.body
+      ) : (
+        <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 h-[500px] sm:h-[650px]">
+          <div
+            ref={mapContainerRef}
+            className="w-full h-full map-container"
+          />
+          {renderLegend()}
+        </div>
+      )}
 
       {/* Empty state */}
       {allGeoItems.length === 0 && (
@@ -471,4 +441,34 @@ export default function TripMap() {
       )}
     </div>
   );
+
+  function renderLegend() {
+    if (Object.keys(categoryCounts).length === 0) return null;
+    return (
+      <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit z-[10]">
+        <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md rounded-xl border border-slate-200/60 shadow-lg">
+          {Object.entries(categoryCounts).map(([type, count]) => {
+            const cat = CATEGORIES[type] || CATEGORIES.other;
+            return (
+              <div
+                key={type}
+                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors hover:bg-slate-50"
+              >
+                <span
+                  className="w-3 h-3 rounded-full shadow-sm"
+                  style={{ background: cat.color }}
+                />
+                <span className="text-xs font-medium text-slate-600">
+                  {t(cat.key)}
+                </span>
+                <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                  {count}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 }

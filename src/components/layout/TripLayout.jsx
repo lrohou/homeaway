@@ -40,7 +40,7 @@ export default function TripLayout() {
   // Sync tab scroll with active tab
   useEffect(() => {
     if (!scrollContainerRef.current) return;
-    
+
     // Find active link element
     const activeTab = scrollContainerRef.current.querySelector('[data-active="true"]');
     if (activeTab) {
@@ -105,8 +105,8 @@ export default function TripLayout() {
           {/* Gradient indicators for horizontal scroll */}
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none opacity-0 sm:hidden lg:opacity-0" id="scroll-fade-left" />
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" id="scroll-fade-right" />
-          
-          <div 
+
+          <div
             ref={scrollContainerRef}
             className="flex flex-nowrap gap-1 overflow-x-auto pb-2 relative touch-pan-x overscroll-x-contain scrollbar-hide"
             onScroll={(e) => {
@@ -167,14 +167,7 @@ export default function TripLayout() {
             }}
             className="touch-pan-y"
           >
-            {currentTab === 'map' ? (
-              <div className="py-20 text-center text-muted-foreground animate-pulse">
-                {/* Visual placeholder while Map is overlayed from outside AnimatePresence */}
-                {t('map.loading')}
-              </div>
-            ) : (
-              <Outlet />
-            )}
+            <Outlet />
           </motion.div>
         </AnimatePresence>
 
@@ -183,7 +176,7 @@ export default function TripLayout() {
           "absolute inset-0 z-[30] bg-background pointer-events-none opacity-0 transition-opacity duration-300",
           currentTab === 'map' && "pointer-events-auto opacity-100 relative h-auto"
         )}>
-           <TripMap />
+          <TripMap />
         </div>
       </div>
     </div>
