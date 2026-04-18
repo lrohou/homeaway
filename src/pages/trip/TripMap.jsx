@@ -284,10 +284,21 @@ export default function TripMap() {
       resizeObserver.observe(mapContainerRef.current);
     }
 
+    // Force a resize manually when toggling fullscreen to be extra safe
+    if (isFullScreen) {
+      const timer1 = setTimeout(() => mapRef.current?.resize(), 100);
+      const timer2 = setTimeout(() => mapRef.current?.resize(), 500);
+      return () => {
+        clearTimeout(timer1);
+        clearTimeout(timer2);
+        resizeObserver.disconnect();
+      };
+    }
+
     return () => {
       resizeObserver.disconnect();
     };
-  }, [mapLoaded]);
+  }, [mapLoaded, isFullScreen]);
 
   // Update markers when data changes
   useEffect(() => {

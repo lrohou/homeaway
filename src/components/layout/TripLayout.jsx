@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from "react";
 import { Outlet, Link, useLocation, useParams, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, FileText, Map, Receipt, Settings, ArrowLeft, Hotel, Plane, Palmtree, Users, MessageSquare } from "lucide-react";
@@ -31,6 +32,23 @@ export default function TripLayout() {
     queryKey: ["trip", tripId],
     queryFn: () => api.trips.get(tripId),
   });
+
+  const scrollContainerRef = useRef(null);
+
+  // Sync tab scroll with active tab
+  useEffect(() => {
+    if (!scrollContainerRef.current) return;
+    
+    // Find active link element
+    const activeTab = scrollContainerRef.current.querySelector('[data-active="true"]');
+    if (activeTab) {
+      activeTab.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest"
+      });
+    }
+  }, [currentTab]);
 
   const handleSwipe = (direction) => {
     const currentIndex = tabs.findIndex(t => t.path === currentTab);
@@ -87,7 +105,8 @@ export default function TripLayout() {
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none sm:hidden" id="scroll-fade-right" />
           
           <div 
-            className="flex flex-nowrap gap-1 overflow-x-auto pb-2 relative touch-pan-x overscroll-x-contain"
+            ref={scrollContainerRef}
+            className="flex flex-nowrap gap-1 overflow-x-auto pb-2 relative touch-pan-x overscroll-x-contain scrollbar-hide"
             onScroll={(e) => {
               const left = e.target.scrollLeft > 10;
               const right = e.target.scrollLeft < (e.target.scrollWidth - e.target.clientWidth - 10);
@@ -104,6 +123,7 @@ export default function TripLayout() {
                 <Link
                   key={tab.path}
                   to={`/trip/${tripId}/${tab.path}`}
+                  data-active={isActive}
                   className={cn(
                     "flex items-center gap-2 px-4 py-3.5 text-sm font-medium transition-all whitespace-nowrap -mb-px border-b-2 relative shrink-0",
                     isActive

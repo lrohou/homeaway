@@ -42,10 +42,29 @@ export default function TripChat() {
     }
   });
 
-  // Auto-scroll to bottom when messages change
+  // Auto-scroll to bottom when messages change or window resizes (keyboard toggle)
+  const scrollToBottom = (behavior = 'smooth') => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior, block: 'end' });
+    }
+  };
+
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, isFullScreen]);
+
+  // Handle window resize (mobile keyboard)
+  useEffect(() => {
+    const handleResize = () => {
+      if (isFullScreen) {
+        // Small delay to let the layout settle
+        setTimeout(() => scrollToBottom('auto'), 100);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isFullScreen]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
