@@ -1,7 +1,7 @@
-import { Outlet, Link, useLocation, useParams } from "react-router-dom";
+import { Outlet, Link, useLocation, useParams, useNavigate } from "react-router-dom";
+import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, FileText, Map, Receipt, Settings, ArrowLeft, Hotel, Plane, Palmtree, Users, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/apiClient";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -23,6 +23,7 @@ const tabs = [
 export default function TripLayout() {
   const { tripId } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const currentTab = location.pathname.split("/").pop();
 
@@ -30,6 +31,22 @@ export default function TripLayout() {
     queryKey: ["trip", tripId],
     queryFn: () => api.trips.get(tripId),
   });
+
+  const handleSwipe = (direction) => {
+    const currentIndex = tabs.findIndex(t => t.path === currentTab);
+    if (currentIndex === -1) return;
+
+    let nextIndex = currentIndex;
+    if (direction === 'left' && currentIndex < tabs.length - 1) {
+      nextIndex = currentIndex + 1;
+    } else if (direction === 'right' && currentIndex > 0) {
+      nextIndex = currentIndex - 1;
+    }
+
+    if (nextIndex !== currentIndex) {
+      navigate(`/trip/${tripId}/${tabs[nextIndex].path}`);
+    }
+  };
 
   return (
     <div>
@@ -110,7 +127,28 @@ export default function TripLayout() {
         </div>
       </div>
 
-      <Outlet />
+      <div className="relative min-h-[400px]">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.2 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 0 }}
+            dragElastic={0.2}
+            onDragEnd={(e, { offset, velocity }) => {
+              const swipe = offset.x;
+              if (swipe < -100) handleSwipe('left');
+              else if (swipe > 100) handleSwipe('right');
+            }}
+            className="touch-pan-y"
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </div>
   );
 }

@@ -272,14 +272,22 @@ export default function TripMap() {
     };
   }, []);
 
-  // Handle map resize on fullscreen toggle
+  // Handle map resize on any container size change (more robust than state-based)
   useEffect(() => {
-    if (mapRef.current) {
-      setTimeout(() => {
-        mapRef.current.resize();
-      }, 100);
+    if (!mapRef.current) return;
+    
+    const resizeObserver = new ResizeObserver(() => {
+      mapRef.current.resize();
+    });
+
+    if (mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current);
     }
-  }, [isFullScreen]);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [mapLoaded]);
 
   // Update markers when data changes
   useEffect(() => {
@@ -371,10 +379,13 @@ export default function TripMap() {
           border-radius: 0 !important;
           display: flex !important;
           flex-direction: column !important;
+          width: 100vw !important;
+          height: 100dvh !important;
         }
         .fullscreen-overlay .map-container {
           flex: 1 !important;
           height: 100% !important;
+          width: 100% !important;
         }
       `}</style>
       {/* Header */}
