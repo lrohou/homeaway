@@ -41,8 +41,8 @@ export default function TripExpenses() {
     title: "",
     amount: "",
     category: "food",
-    date: "",
-    paid_by: user?.email || "",
+    date: new Date().toISOString().split('T')[0],
+    paid_by: user?.id || "",
   });
 
   const { data: trip } = useQuery({
@@ -50,17 +50,25 @@ export default function TripExpenses() {
     queryFn: () => api.trips.get(tripId),
   });
 
+  const { data: members = [], isLoading: membersLoading } = useQuery({
+    queryKey: ["members", tripId],
+    queryFn: () => api.members.list(tripId),
+  });
+
   const tripMembers = useMemo(() => {
-    const m = [user?.email];
-    if (trip?.members) {
-      if (typeof trip.members[0] === "string") {
-        m.push(...trip.members);
-      } else {
-        m.push(...trip.members.map(x => x.email || x));
-      }
-    }
-    return [...new Set(m)].filter(Boolean);
-  }, [trip, user]);
+    if (members.length > 0) return members;
+    // Fallback to current user if members haven't loaded
+    return [{ user_id: user?.id, email: user?.email, name: user?.name }];
+  }, [members, user]);
+
+  const memberMap = useMemo(() => {
+    const map = {};
+    tripMembers.forEach(m => {
+      map[m.user_id] = m;
+      map[m.email] = m; // Support both for transition
+    });
+    return map;
+  }, [tripMembers]);
 
   const { data: expenses = [], isLoading } = useQuery({
     queryKey: ["expenses", tripId],
@@ -142,12 +150,12 @@ export default function TripExpenses() {
         amount: Number(form.amount),
         category: form.category,
         date: form.date,
-        paid_by: form.paid_by,
-        split_between: tripMembers,
+        paid_by: Number(form.paid_by),
+        split_between: tripMembers.map(m => m.email),
       });
       queryClient.invalidateQueries({ queryKey: ["expenses", tripId] });
       setShowAdd(false);
-      setForm({ title: "", amount: "", category: "food", date: "", paid_by: user?.email || "" });
+      setForm({ title: "", amount: "", category: "food", date: new Date().toISOString().split('T')[0], paid_by: user?.id || "" });
     } catch (err) {
       console.error("Error adding expense:", err);
     } finally {
@@ -162,32 +170,35 @@ export default function TripExpenses() {
 
   // Balances
   const balances = useMemo(() => {
-    const membersList = new Set(tripMembers);
-    allExpenses.forEach((e) => {
-      e.split_between?.forEach((m) => membersList.add(m));
-    });
     const bal = {};
-    membersList.forEach((m) => (bal[m] = 0));
+    tripMembers.forEach((m) => (bal[m.email] = 0));
+    
     allExpenses.forEach((e) => {
+      const payerEmail = e.payer_email || memberMap[e.paid_by]?.email || e.paid_by;
+      
       if (e.isActivity) {
         const splitCount = tripMembers.length || 1;
         const perPerson = e.amount / splitCount;
         tripMembers.forEach((m) => {
-          bal[m] = (bal[m] || 0) - perPerson;
+          bal[m.email] = (bal[m.email] || 0) - perPerson;
         });
       } else {
         const splitCount = e.split_between?.length || 1;
         const perPerson = e.amount / splitCount;
-        bal[e.paid_by] = (bal[e.paid_by] || 0) + e.amount - perPerson;
-        e.split_between?.forEach((m) => {
-          if (m !== e.paid_by) {
-            bal[m] = (bal[m] || 0) - perPerson;
+        
+        if (payerEmail) {
+          bal[payerEmail] = (bal[payerEmail] || 0) + e.amount - perPerson;
+        }
+        
+        e.split_between?.forEach((mEmail) => {
+          if (mEmail !== payerEmail) {
+            bal[mEmail] = (bal[mEmail] || 0) - perPerson;
           }
         });
       }
     });
     return bal;
-  }, [allExpenses, tripMembers]);
+  }, [allExpenses, tripMembers, memberMap]);
 
   const settlements = useMemo(() => {
     const debtors = [];
@@ -300,7 +311,7 @@ export default function TripExpenses() {
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground text-base truncate">{exp.title}</p>
                   <p className="text-xs text-muted-foreground font-medium">
-                    {t('expenses.paidBy')} {exp.paid_by}{exp.date && ` · ${format(new Date(exp.date), "d MMM yyyy", { locale: fr })}`}
+                    {t('expenses.paidBy')} {exp.payer_name || exp.payer_email || exp.paid_by || "—"}{exp.date && ` · ${format(new Date(exp.date), "d MMM yyyy", { locale: fr })}`}
                   </p>
                 </div>
               </div>
@@ -373,11 +384,11 @@ export default function TripExpenses() {
               </div>
               <div className="space-y-2">
                 <Label>{t('expenses.paidBy')}</Label>
-                <Select value={form.paid_by} onValueChange={(v) => setForm((f) => ({ ...f, paid_by: v }))}>
+                <Select value={String(form.paid_by)} onValueChange={(v) => setForm((f) => ({ ...f, paid_by: v }))}>
                   <SelectTrigger><SelectValue placeholder="Membre" /></SelectTrigger>
                   <SelectContent>
-                    {tripMembers.map((email) => (
-                      <SelectItem key={email} value={email}>{email}</SelectItem>
+                    {tripMembers.map((m) => (
+                      <SelectItem key={m.user_id || m.email} value={String(m.user_id || m.email)}>{m.name || m.email}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

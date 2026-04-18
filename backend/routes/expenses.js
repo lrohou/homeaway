@@ -9,7 +9,11 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const expenses = await query(
-      'SELECT * FROM expenses WHERE trip_id = ? ORDER BY date DESC',
+      `SELECT e.*, u.name as payer_name, u.email as payer_email 
+       FROM expenses e 
+       LEFT JOIN users u ON e.paid_by = u.id 
+       WHERE e.trip_id = ? 
+       ORDER BY e.date DESC`,
       [tripId]
     );
     res.json(expenses);
@@ -24,7 +28,10 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { tripId, id } = req.params;
     const expenses = await query(
-      'SELECT * FROM expenses WHERE id = ? AND trip_id = ?',
+      `SELECT e.*, u.name as payer_name, u.email as payer_email 
+       FROM expenses e 
+       LEFT JOIN users u ON e.paid_by = u.id 
+       WHERE e.id = ? AND e.trip_id = ?`,
       [id, tripId]
     );
     if (expenses.length === 0) {
