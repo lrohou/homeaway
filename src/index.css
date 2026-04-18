@@ -99,6 +99,13 @@
     display: none;
   }
 
+  .body-lock {
+    overflow: hidden !important;
+    position: fixed !important;
+    width: 100% !important;
+    height: 100% !important;
+  }
+
   /* Mobile optimizations */
   @media (max-width: 640px) {
     .h-16 { height: 3.5rem; } /* Slightly shorter header on mobile */

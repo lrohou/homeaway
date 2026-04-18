@@ -61,20 +61,28 @@ export default function TripChat() {
     if (!isFullScreen) return;
 
     const handleResize = () => {
-      const height = window.visualViewport ? window.visualViewport.height : window.innerHeight;
-      setViewportHeight(height);
-      // Small delay to let the layout settle
-      setTimeout(() => scrollToBottom('auto'), 100);
+      if (window.visualViewport) {
+        setViewportHeight(window.visualViewport.height);
+        // Track offset to counter-act browser's automatic scrolling
+        const chatElement = document.getElementById('fullscreen-chat-overlay');
+        if (chatElement) {
+          chatElement.style.top = `${window.visualViewport.offsetTop}px`;
+        }
+      } else {
+        setViewportHeight(window.innerHeight);
+      }
+      setTimeout(() => scrollToBottom('auto'), 150);
     };
 
+    document.body.classList.add('body-lock');
     window.visualViewport?.addEventListener('resize', handleResize);
     window.visualViewport?.addEventListener('scroll', handleResize);
     window.addEventListener('resize', handleResize);
     
-    // Initial call
     handleResize();
 
     return () => {
+      document.body.classList.remove('body-lock');
       window.visualViewport?.removeEventListener('resize', handleResize);
       window.visualViewport?.removeEventListener('scroll', handleResize);
       window.removeEventListener('resize', handleResize);
@@ -119,27 +127,31 @@ export default function TripChat() {
       <AnimatePresence>
         {isFullScreen ? createPortal(
           <motion.div
+            id="fullscreen-chat-overlay"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed left-0 right-0 top-0 z-[100000] bg-white flex flex-col overflow-hidden"
-            style={{ height: viewportHeight }}
+            className="fixed left-0 right-0 z-[100000] bg-white flex flex-col overflow-hidden shadow-2xl"
+            style={{ 
+              height: viewportHeight,
+              top: window.visualViewport?.offsetTop || 0
+            }}
           >
-            <div className="border-b bg-white py-4 px-6 flex flex-row items-center justify-between shadow-sm shrink-0">
+            <div className="border-b bg-white py-3 px-6 flex flex-row items-center justify-between shadow-sm shrink-0">
               <div className="flex items-center gap-2">
                 <MessageCircle className="w-5 h-5 text-primary" />
-                <h2 className="font-bold text-lg truncate max-w-[200px]">
+                <h2 className="font-bold text-base truncate max-w-[180px]">
                   {trip?.name || 'Discussion'}
                 </h2>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-9 w-9 rounded-full bg-slate-50"
                   onClick={() => setIsFullScreen(false)}
                 >
-                  <Minimize2 className="w-5 h-5" />
+                  <Minimize2 className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="ghost"
@@ -152,11 +164,11 @@ export default function TripChat() {
               </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/10">
+            <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/10 overscroll-contain">
               {renderMessages()}
             </div>
 
-            <div className="border-t p-4 pb-8 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.05)] shrink-0">
+            <div className="border-t p-3 pb-6 bg-white shadow-[0_-4px_12px_rgba(0,0,0,0.05)] shrink-0">
               {renderInput()}
             </div>
           </motion.div>,

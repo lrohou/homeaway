@@ -161,6 +161,8 @@ export default function TripMap() {
   const markersRef = useRef([]);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const placeholderRef = useRef(null);
+  const [placeholderRect, setPlaceholderRect] = useState(null);
 
   const { data: steps = [], isLoading: stepsLoading } = useQuery({
     queryKey: ["steps", tripId],
@@ -267,39 +269,60 @@ export default function TripMap() {
     mapRef.current = map;
 
     return () => {
-      map.remove();
-      mapRef.current = null;
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
       setMapLoaded(false);
     };
   }, []);
 
-  // Handle map resize on any container size change (more robust than state-based)
+  // Track placeholder position for inline map
+  useEffect(() => {
+    if (isFullScreen) {
+      document.body.classList.add('body-lock');
+      return () => document.body.classList.remove('body-lock');
+    }
+    
+    const updateRect = () => {
+      if (placeholderRef.current) {
+        setPlaceholderRect(placeholderRef.current.getBoundingClientRect());
+      }
+    };
+
+    updateRect();
+    const observer = new ResizeObserver(updateRect);
+    if (placeholderRef.current) observer.observe(placeholderRef.current);
+    window.addEventListener('scroll', updateRect);
+    window.addEventListener('resize', updateRect);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', updateRect);
+      window.removeEventListener('resize', updateRect);
+    };
+  }, [isFullScreen]);
+
+  // Sync map resize on ANY size change or mode change
   useEffect(() => {
     if (!mapRef.current) return;
     
-    const resizeObserver = new ResizeObserver(() => {
-      mapRef.current.resize();
-    });
+    // Multiple attempts to ensure the canvas matches new dimensions
+    const triggerResize = () => {
+      mapRef.current?.resize();
+    };
 
-    if (mapContainerRef.current) {
-      resizeObserver.observe(mapContainerRef.current);
-    }
-
-    // Force a resize manually when toggling fullscreen to be extra safe
-    if (isFullScreen) {
-      const timer1 = setTimeout(() => mapRef.current?.resize(), 100);
-      const timer2 = setTimeout(() => mapRef.current?.resize(), 500);
-      return () => {
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        resizeObserver.disconnect();
-      };
-    }
+    triggerResize();
+    const t1 = setTimeout(triggerResize, 100);
+    const t2 = setTimeout(triggerResize, 500);
+    const t3 = setTimeout(triggerResize, 1000);
 
     return () => {
-      resizeObserver.disconnect();
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
     };
-  }, [mapLoaded, isFullScreen]);
+  }, [isFullScreen, placeholderRect]);
 
   // Update markers when data changes
   useEffect(() => {
@@ -436,105 +459,80 @@ export default function TripMap() {
         </div>
       </div>
 
-      {/* Map Container - Only render locally if NOT fullscreen */}
-      {!isFullScreen ? (
-        <div className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 transition-all duration-300 h-[500px] sm:h-[650px]">
-          <div
-            ref={mapContainerRef}
-            className="w-full h-full map-container"
-            style={{ minHeight: "400px" }}
-          />
+      {/* LEGACY Map Container Section Replaced with Placeholder & Portal */}
+      <div 
+        ref={placeholderRef}
+        className="relative rounded-2xl overflow-hidden border border-slate-200/80 shadow-xl shadow-slate-200/50 bg-slate-100 h-[500px] sm:h-[650px]"
+      >
+        {(!placeholderRect || !mapLoaded) && (
+          <div className="absolute inset-0 flex items-center justify-center animate-pulse">
+            <Loader2 className="w-8 h-8 text-slate-300 animate-spin" />
+          </div>
+        )}
+      </div>
 
-          {/* Legend overlay */}
-          {Object.keys(categoryCounts).length > 0 && (
-            <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit">
-              <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-white/90 backdrop-blur-md rounded-xl border border-slate-200/60 shadow-lg">
+      {/* PERSISTENT MAP PORTAL - Does not unmount! */}
+      {createPortal(
+        <div 
+          className={cn(
+            "fixed transition-all duration-300 ease-in-out bg-white overflow-hidden",
+            isFullScreen 
+              ? "inset-0 z-[100000] flex flex-col" 
+              : "z-[50] rounded-2xl border border-slate-200/80 shadow-xl pointer-events-auto"
+          )}
+          style={!isFullScreen && placeholderRect ? {
+            left: placeholderRect.left,
+            top: placeholderRect.top,
+            width: placeholderRect.width,
+            height: placeholderRect.height,
+            position: 'fixed'
+          } : undefined}
+        >
+          {isFullScreen && (
+            <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm shrink-0">
+              <h3 className="font-bold flex items-center gap-2 text-slate-800">
+                <MapPin className="w-4 h-4 text-blue-500" />
+                {trip?.name || t('map.title')}
+              </h3>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsFullScreen(false)} 
+                  className="rounded-full gap-2 border-slate-200 font-semibold shadow-sm"
+                >
+                  <Minimize2 className="w-4 h-4" />
+                  {t('common.reduce') || 'Réduire'}
+                </Button>
+              </div>
+            </div>
+          )}
+
+          <div 
+            ref={mapContainerRef} 
+            className="w-full h-full relative flex-1"
+          />
+          
+          {/* Legend in map layer */}
+          {Object.keys(categoryCounts).length > 0 && mapLoaded && (
+            <div className={cn(
+              "absolute z-10 transition-all duration-300",
+              isFullScreen ? "bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-auto" : "bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:max-w-fit"
+            )}>
+              <div className="flex flex-wrap items-center justify-center gap-2 px-4 py-3 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-xl">
                 {Object.entries(categoryCounts).map(([type, count]) => {
                   const cat = CATEGORIES[type] || CATEGORIES.other;
                   return (
-                    <div
-                      key={type}
-                      className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg transition-colors hover:bg-slate-50"
-                    >
-                      <span
-                        className="w-3 h-3 rounded-full shadow-sm"
-                        style={{ background: cat.color }}
-                      />
-                      <span className="text-xs font-medium text-slate-600">
-                        {t(cat.key)}
-                      </span>
-                      <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
-                        {count}
-                      </span>
+                    <div key={type} className="flex items-center gap-1.5 px-2 py-0.5">
+                      <span className="w-2.5 h-2.5 rounded-full" style={{ background: cat.color }} />
+                      <span className="text-xs font-bold text-slate-600 truncate">{t(cat.key)}</span>
+                      <span className="text-[10px] font-black text-slate-300">{count}</span>
                     </div>
                   );
                 })}
               </div>
             </div>
           )}
-        </div>
-      ) : (
-        /* Placeholder to maintain layout while the map is in the portal */
-        <div className="h-[500px] sm:h-[650px] bg-slate-100 rounded-2xl flex items-center justify-center animate-pulse">
-          <Loader2 className="w-8 h-8 text-slate-300 animate-spin" />
-        </div>
-      )}
-
-      {/* Fullscreen Portal */}
-      {isFullScreen && createPortal(
-        <div className="fullscreen-overlay fixed inset-0 z-[100000] bg-white flex flex-col overflow-hidden">
-          <style>{`
-            .fullscreen-overlay {
-              width: 100vw !important;
-              height: 100dvh !important;
-              z-index: 100000 !important;
-              left: 0 !important;
-              top: 0 !important;
-            }
-          `}</style>
-          
-          <div className="bg-white border-b p-4 flex justify-between items-center shadow-sm z-20 shrink-0">
-            <h3 className="font-bold flex items-center gap-2 text-slate-800">
-              <MapPin className="w-4 h-4 text-blue-500" />
-              {trip?.name || t('map.title')}
-            </h3>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setIsFullScreen(false)} 
-                className="rounded-full gap-2 border-slate-200 font-semibold shadow-sm"
-              >
-                <Minimize2 className="w-4 h-4" />
-                {t('common.reduce') || 'Réduire'}
-              </Button>
-            </div>
-          </div>
-
-          <div className="flex-1 relative overflow-hidden">
-            <div 
-              ref={mapContainerRef} 
-              className="w-full h-full"
-            />
-            
-            {/* Legend in portal */}
-            {Object.keys(categoryCounts).length > 0 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-[90%] sm:w-auto z-10">
-                <div className="flex flex-wrap items-center justify-center gap-2 px-4 py-3 bg-white/95 backdrop-blur-md rounded-2xl border border-slate-200 shadow-xl">
-                  {Object.entries(categoryCounts).map(([type, count]) => {
-                    const cat = CATEGORIES[type] || CATEGORIES.other;
-                    return (
-                      <div key={type} className="flex items-center gap-1.5 px-2 py-0.5">
-                        <span className="w-2.5 h-2.5 rounded-full" style={{ background: cat.color }} />
-                        <span className="text-[11px] font-bold text-slate-600">{t(cat.key)}</span>
-                        <span className="text-[10px] font-black text-slate-300">{count}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
         </div>,
         document.body
       )}
