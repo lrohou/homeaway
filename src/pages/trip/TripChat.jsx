@@ -152,8 +152,7 @@ export default function TripChat() {
           </Card>
         )}
       </AnimatePresence>
-    </div>
-  );
+    );
 
   function renderMessages() {
     if (messages.length === 0) {
