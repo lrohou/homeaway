@@ -76,7 +76,7 @@ const translations = {
 
     // Dashboard
     "dashboard.title": "Mes voyages",
-    "dashboard.subtitle": "Planifiez et gérez vos prochains voyages",
+    "dashboard.subtitle": "\n Planifiez et gérez vos prochains voyages",
     "dashboard.empty": "Aucun voyage pour le moment",
     "dashboard.create": "Créer un voyage",
     "dashboard.welcome": "Bienvenue sur HomeAway",
@@ -269,6 +269,28 @@ const translations = {
     "common.creating": "Création...",
     "common.create": "Créer le voyage",
     "common.cancel": "Annuler",
+
+    // Community
+    "community.title": "Communauté",
+    "community.subtitle": "Découvrez les voyages partagés par la communauté",
+    "community.sharedBy": "Partagé par",
+    "community.days": "jours",
+    "community.empty": "Aucun voyage partagé pour le moment",
+    "community.share": "Partager",
+    "community.shareTitle": "Partager avec la communauté",
+    "community.shareDesc": "Partagez votre voyage pour inspirer les autres.",
+    "community.selectShared": "Éléments à partager",
+    "community.accommodations": "Logements",
+    "community.transports": "Transports",
+    "community.activities": "Activités",
+    "community.coverImage": "URL de l'image de couverture",
+    "community.comments": "Avis et commentaires",
+    "community.shareBtn": "Partager",
+    "community.unshareBtn": "Ne plus partager",
+    "community.updateBtn": "Mettre à jour",
+    "community.viewPlanning": "Voir le planning",
+    "community.viewMap": "Voir la carte",
+    "community.viewBookings": "Voir les réservations",
   },
 
   en: {
@@ -544,6 +566,28 @@ const translations = {
     "documents.invoice": "Invoice",
     "documents.insurance": "Insurance",
     "documents.other": "Other",
+
+    // Community
+    "community.title": "Community",
+    "community.subtitle": "Discover trips shared by the community",
+    "community.sharedBy": "Shared by",
+    "community.days": "days",
+    "community.empty": "No shared trips yet",
+    "community.share": "Share",
+    "community.shareTitle": "Share with community",
+    "community.shareDesc": "Share your trip to inspire others.",
+    "community.selectShared": "Elements to share",
+    "community.accommodations": "Accommodations",
+    "community.transports": "Transports",
+    "community.activities": "Activities",
+    "community.coverImage": "Cover image URL",
+    "community.comments": "Reviews and comments",
+    "community.shareBtn": "Share",
+    "community.unshareBtn": "Stop sharing",
+    "community.updateBtn": "Update",
+    "community.viewPlanning": "View planning",
+    "community.viewMap": "View map",
+    "community.viewBookings": "View bookings",
   },
 };
 

@@ -1,5 +1,5 @@
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Plus, User, LogOut } from "lucide-react";
+import { LayoutDashboard, Plus, User, LogOut, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,6 +34,13 @@ export default function AppLayout() {
           </Link>
 
           <div className="flex items-center gap-3">
+            <Link to="/community">
+              <Button size="sm" variant="ghost" className="gap-1.5 rounded-full px-4 hover:bg-accent/10">
+                <Users className="w-4 h-4" />
+                <span className="hidden sm:inline">{t('community.title')}</span>
+              </Button>
+            </Link>
+
             <Link to="/new-trip">
               <Button size="sm" className="gap-1.5 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-4">
                 <Plus className="w-4 h-4" />

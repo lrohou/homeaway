@@ -58,7 +58,7 @@ export default function Dashboard() {
   // Aggregate all events from all trips
   const allEvents = useMemo(() => {
     if (tripsLoading || isLoadingDetails) return [];
-    
+
     const events = [];
     trips.forEach((trip, index) => {
       const baseIdx = index * 4;
@@ -92,7 +92,7 @@ export default function Dashboard() {
   const nextEvent = useMemo(() => {
     const todayStr = new Date().toISOString().split("T")[0];
     const nowTime = new Date().toTimeString().substring(0, 5);
-    
+
     const upcoming = allEvents
       .filter((e) => e.date > todayStr || (e.date === todayStr && (e.start_time || "23:59") >= nowTime))
       .sort((a, b) => {
@@ -126,7 +126,7 @@ export default function Dashboard() {
         </h1>
         <p className="text-muted-foreground">
           {t('dashboard.welcome')} {user?.name ? `, ${user.name.split(" ")[0]}` : ""}.
-          '\n'.{t('dashboard.subtitle')}
+          {t('dashboard.subtitle')}
         </p>
       </motion.div>
 

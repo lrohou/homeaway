@@ -185,6 +185,18 @@ export async function createTables() {
       latitude REAL,
       longitude REAL,
       paid_by INTEGER
+    )`,
+    `CREATE TABLE IF NOT EXISTS shared_trips (
+      id SERIAL PRIMARY KEY,
+      trip_id INTEGER NOT NULL REFERENCES trips(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      share_accommodations BOOLEAN DEFAULT TRUE,
+      share_transports BOOLEAN DEFAULT TRUE,
+      share_activities BOOLEAN DEFAULT TRUE,
+      cover_image TEXT,
+      comments TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(trip_id)
     )`
   ];
 

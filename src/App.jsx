@@ -14,6 +14,8 @@ import NewTrip from '@/pages/NewTrip';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import JoinTrip from '@/pages/JoinTrip';
+import Community from '@/pages/Community';
+import CommunityTripView from '@/pages/CommunityTripView';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
 const GOOGLE_CLIENT_ID = "562696376234-vuvan30oooeg5o0ma16gce5ugim9ol90.apps.googleusercontent.com";
@@ -63,6 +65,8 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<Dashboard />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/new-trip" element={<NewTrip />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/community/trip/:sharedTripId" element={<CommunityTripView />} />
           <Route path="/global-map" element={<GlobalMap />} />
           <Route path="/trip/:tripId" element={<TripLayout />}>
             <Route path="planning" element={<TripPlanning />} />

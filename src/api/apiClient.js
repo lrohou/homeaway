@@ -134,4 +134,12 @@ export const api = {
     },
     delete: async (docId) => apiCall(`/documents/${docId}`, { method: 'DELETE' }),
   },
+  community: {
+    list: async () => apiCall('/community', { method: 'GET' }),
+    get: async (id) => apiCall(`/community/${id}`, { method: 'GET' }),
+    share: async (data) => apiCall('/community/share', { method: 'POST', body: JSON.stringify(data) }),
+    unshare: async (tripId) => apiCall(`/community/unshare/${tripId}`, { method: 'DELETE' }),
+    getSettings: async (tripId) => apiCall(`/community/settings/${tripId}`, { method: 'GET' }),
+    getContent: async (id) => apiCall(`/community/${id}/content`, { method: 'GET' }),
+  },
 };

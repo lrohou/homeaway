@@ -12,6 +12,7 @@ import tripStepsRoutes from './routes/tripSteps.js';
 import membersRoutes from './routes/members.js';
 import messagesRoutes from './routes/messages.js';
 import documentsRoutes from './routes/documents.js';
+import communityRoutes from './routes/community.js';
 import { initMailer } from './config/mailConfig.js';
 
 const app = express();
@@ -51,6 +52,7 @@ initDb();
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
+app.use('/api/community', communityRoutes);
 
 // Nested routes for trip resources
 app.use('/api/trips/:tripId/accommodations', accommodationsRoutes);
