@@ -34,6 +34,7 @@ export default function TripSettings() {
     share_activities: true,
     cover_image: "",
     comments: "",
+    bookings: [],
   });
   const [savingShare, setSavingShare] = useState(false);
   const [unsharingTrip, setUnsharingTrip] = useState(false);
@@ -49,18 +50,44 @@ export default function TripSettings() {
     retry: false,
   });
 
+  const { data: accommodations = [] } = useQuery({ queryKey: ['accommodations', tripId], queryFn: () => api.accommodations.list(tripId) });
+  const { data: transports = [] } = useQuery({ queryKey: ['transports', tripId], queryFn: () => api.transports.list(tripId) });
+  const { data: activities = [] } = useQuery({ queryKey: ['activities', tripId], queryFn: () => api.activities.list(tripId) });
+
   // Populate share form when settings loaded
   useEffect(() => {
-    if (shareSettings) {
-      setShareForm({
-        share_accommodations: shareSettings.share_accommodations,
-        share_transports: shareSettings.share_transports,
-        share_activities: shareSettings.share_activities,
-        cover_image: shareSettings.cover_image || "",
-        comments: shareSettings.comments || "",
-      });
-    }
-  }, [shareSettings]);
+    if (shareSettings === null || shareSettings === undefined) return;
+    // Build bookings from saved selections
+    const savedBookings = shareSettings.bookings || [];
+    const bookingMap = {};
+    savedBookings.forEach(b => { bookingMap[`${b.booking_type}_${b.booking_id}`] = b; });
+
+    // Build default bookings list from all reservations
+    const allBookings = [
+      ...accommodations.map(a => ({ booking_type: 'accommodation', booking_id: a.id, label: a.name, is_shared: bookingMap[`accommodation_${a.id}`]?.is_shared ?? true, review: bookingMap[`accommodation_${a.id}`]?.review || '' })),
+      ...transports.map(t => ({ booking_type: 'transport', booking_id: t.id, label: `${t.departure} → ${t.arrival}`, is_shared: bookingMap[`transport_${t.id}`]?.is_shared ?? true, review: bookingMap[`transport_${t.id}`]?.review || '' })),
+      ...activities.map(a => ({ booking_type: 'activity', booking_id: a.id, label: a.name, is_shared: bookingMap[`activity_${a.id}`]?.is_shared ?? true, review: bookingMap[`activity_${a.id}`]?.review || '' })),
+    ];
+
+    setShareForm(f => ({
+      ...f,
+      cover_image: shareSettings?.cover_image || '',
+      comments: shareSettings?.comments || '',
+      bookings: allBookings,
+    }));
+  }, [shareSettings, accommodations, transports, activities]);
+
+  // Also init bookings when no settings yet
+  useEffect(() => {
+    if (shareSettings !== null && shareSettings !== undefined) return;
+    if (shareForm.bookings.length > 0) return;
+    const allBookings = [
+      ...accommodations.map(a => ({ booking_type: 'accommodation', booking_id: a.id, label: a.name, is_shared: true, review: '' })),
+      ...transports.map(t => ({ booking_type: 'transport', booking_id: t.id, label: `${t.departure} → ${t.arrival}`, is_shared: true, review: '' })),
+      ...activities.map(a => ({ booking_type: 'activity', booking_id: a.id, label: a.name, is_shared: true, review: '' })),
+    ];
+    if (allBookings.length > 0) setShareForm(f => ({ ...f, bookings: allBookings }));
+  }, [accommodations, transports, activities, shareSettings]);
 
   const [form, setForm] = useState({
     title: '',
@@ -123,7 +150,9 @@ export default function TripSettings() {
     try {
       await api.community.share({
         trip_id: Number(tripId),
-        ...shareForm,
+        cover_image: shareForm.cover_image,
+        comments: shareForm.comments,
+        bookings: shareForm.bookings,
       });
       await refetchShareSettings();
       queryClient.invalidateQueries({ queryKey: ["community-trips"] });
@@ -132,6 +161,21 @@ export default function TripSettings() {
       toast({ title: "Erreur", description: err.message, variant: "destructive" });
     } finally {
       setSavingShare(false);
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        toast({ title: "Erreur", description: "L'image est trop volumineuse (max 2MB).", variant: "destructive" });
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setShareForm(f => ({ ...f, cover_image: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -302,39 +346,79 @@ export default function TripSettings() {
             )}
           </div>
 
-          {/* Toggle checkboxes */}
-          <div className="space-y-3 bg-secondary/30 rounded-2xl p-5">
-            <Label className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('community.selectShared')}</Label>
-            <div className="space-y-3 mt-2">
-              {[
-                { key: 'share_accommodations', label: t('community.accommodations'), emoji: '🏠' },
-                { key: 'share_transports', label: t('community.transports'), emoji: '✈️' },
-                { key: 'share_activities', label: t('community.activities'), emoji: '🎯' },
-              ].map(({ key, label, emoji }) => (
-                <div key={key} className="flex items-center justify-between p-3 rounded-xl bg-card border border-border">
-                  <span className="flex items-center gap-2 text-sm font-medium">
-                    <span>{emoji}</span>{label}
-                  </span>
-                  <Switch
-                    checked={shareForm[key]}
-                    onCheckedChange={(v) => setShareForm(f => ({ ...f, [key]: v }))}
-                  />
+          {/* Per-booking switches */}
+          <div className="space-y-4 bg-secondary/30 rounded-2xl p-5">
+            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">{t('community.selectShared')}</p>
+            {shareForm.bookings.length === 0 && (
+              <p className="text-sm text-muted-foreground italic">Aucune réservation à partager pour l'instant.</p>
+            )}
+            {[['accommodation', '🏠', 'Logements'], ['transport', '✈️', 'Transports'], ['activity', '🎯', 'Activités']].map(([type, emoji, label]) => {
+              const items = shareForm.bookings.filter(b => b.booking_type === type);
+              if (!items.length) return null;
+              return (
+                <div key={type} className="space-y-2">
+                  <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">{emoji} {label}</p>
+                  {items.map((booking, idx) => {
+                    const bookingIndex = shareForm.bookings.findIndex(b => b.booking_type === booking.booking_type && b.booking_id === booking.booking_id);
+                    return (
+                      <div key={`${booking.booking_type}_${booking.booking_id}`} className="bg-card rounded-xl border border-border overflow-hidden">
+                        <div className="flex items-center justify-between p-3">
+                          <span className="text-sm font-medium truncate flex-1 mr-2">{booking.label}</span>
+                          <Switch
+                            checked={booking.is_shared}
+                            onCheckedChange={(v) => setShareForm(f => {
+                              const newBookings = [...f.bookings];
+                              newBookings[bookingIndex] = { ...newBookings[bookingIndex], is_shared: v };
+                              return { ...f, bookings: newBookings };
+                            })}
+                          />
+                        </div>
+                        {booking.is_shared && (
+                          <div className="px-3 pb-3">
+                            <input
+                              className="w-full text-sm border border-border rounded-lg px-3 py-2 bg-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              placeholder="Avis optionnel sur cette réservation..."
+                              value={booking.review}
+                              onChange={(e) => setShareForm(f => {
+                                const newBookings = [...f.bookings];
+                                newBookings[bookingIndex] = { ...newBookings[bookingIndex], review: e.target.value };
+                                return { ...f, bookings: newBookings };
+                              })}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              );
+            })}
           </div>
 
           {/* Cover image */}
-          <div className="space-y-2">
-            <Label>{t('community.coverImage')}</Label>
-            <Input
-              placeholder="https://example.com/photo.jpg"
-              value={shareForm.cover_image}
-              onChange={e => setShareForm(f => ({ ...f, cover_image: e.target.value }))}
-              className="h-11"
-            />
+          <div className="space-y-3">
+            <Label>{t('community.coverImage')} (Optionnel)</Label>
+            <div className="flex flex-col gap-3">
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleImageUpload}
+                className="cursor-pointer file:text-sm file:font-semibold file:text-primary file:bg-primary/10 file:border-0 file:rounded-full file:px-4 file:py-1 file:mr-4 hover:file:bg-primary/20"
+              />
+              <div className="flex items-center gap-4">
+                <div className="flex-1 h-px bg-border"></div>
+                <span className="text-xs text-muted-foreground font-medium uppercase">Ou via URL</span>
+                <div className="flex-1 h-px bg-border"></div>
+              </div>
+              <Input
+                placeholder="https://example.com/photo.jpg"
+                value={shareForm.cover_image}
+                onChange={e => setShareForm(f => ({ ...f, cover_image: e.target.value }))}
+                className="h-11"
+              />
+            </div>
             {shareForm.cover_image && (
-              <div className="mt-2 rounded-xl overflow-hidden h-32 bg-secondary">
+              <div className="mt-4 rounded-xl overflow-hidden h-40 bg-secondary border border-border">
                 <img src={shareForm.cover_image} alt="Preview" className="w-full h-full object-cover" onError={e => e.target.style.display='none'} />
               </div>
             )}

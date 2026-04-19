@@ -142,4 +142,19 @@ export const api = {
     getSettings: async (tripId) => apiCall(`/community/settings/${tripId}`, { method: 'GET' }),
     getContent: async (id) => apiCall(`/community/${id}/content`, { method: 'GET' }),
   },
+  todos: {
+    list: async (tripId, type) => apiCall(`/trips/${tripId}/todos${type ? `?type=${type}` : ''}`, { method: 'GET' }),
+    create: async (tripId, data) => apiCall(`/trips/${tripId}/todos`, { method: 'POST', body: JSON.stringify(data) }),
+    update: async (tripId, itemId, data) => apiCall(`/trips/${tripId}/todos/${itemId}`, { method: 'PATCH', body: JSON.stringify(data) }),
+    delete: async (tripId, itemId) => apiCall(`/trips/${tripId}/todos/${itemId}`, { method: 'DELETE' }),
+  },
+  participants: {
+    list: async (tripId) => apiCall(`/trips/${tripId}/participants`, { method: 'GET' }),
+    set: async (tripId, data) => apiCall(`/trips/${tripId}/participants`, { method: 'POST', body: JSON.stringify(data) }),
+  },
+  messages: {
+    list: async (tripId) => apiCall(`/trips/${tripId}/messages`, { method: 'GET' }),
+    send: async (tripId, data) => apiCall(`/trips/${tripId}/messages`, { method: 'POST', body: JSON.stringify(data) }),
+    delete: async (tripId, msgId) => apiCall(`/trips/${tripId}/messages/${msgId}`, { method: 'DELETE' }),
+  },
 };

@@ -11,57 +11,7 @@ import { useTranslation } from "@/lib/LanguageContext";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
-const MAPTILER_STYLE = "https://api.maptiler.com/maps/019d9665-0270-7b06-bf41-907c11a5295a/style.json?key=FZ6exJZ6JibveJODuzvj";
-
-const CATEGORIES = {
-  hotel: { color: "#10b981", emoji: "🏠", key: "cat.hotel" },
-  activity: { color: "#f59e0b", emoji: "🎯", key: "cat.activity" },
-  flight: { color: "#3b82f6", emoji: "✈️", key: "cat.flight" },
-  train: { color: "#6366f1", emoji: "🚆", key: "cat.train" },
-  bus: { color: "#8b5cf6", emoji: "🚌", key: "cat.bus" },
-  car: { color: "#ec4899", emoji: "🚗", key: "cat.car" },
-  transport: { color: "#6366f1", emoji: "🚀", key: "cat.transport" },
-  step: { color: "#a855f7", emoji: "📍", key: "cat.step" },
-  other: { color: "#64748b", emoji: "📌", key: "cat.other" },
-};
-
-function createMarkerElement(type) {
-  const cat = CATEGORIES[type] || CATEGORIES.other;
-  const el = document.createElement("div");
-  el.className = "trip-map-marker";
-  el.innerHTML = `
-    <div style="
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: linear-gradient(135deg, ${cat.color}, ${cat.color}ED);
-      border: 3px solid white;
-      box-shadow: 0 4px 12px ${cat.color}40;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      cursor: pointer;
-    ">
-      ${cat.emoji}
-    </div>
-  `;
-  return el;
-}
-
-function createPopupHTML(item, tripName, t) {
-  const cat = CATEGORIES[item.type] || CATEGORIES.other;
-  return `
-    <div style="padding: 12px; min-width: 200px;">
-      <p style="font-size: 10px; font-weight: 800; text-transform: uppercase; color: ${cat.color}; margin-bottom: 4px;">${tripName}</p>
-      <h4 style="margin: 0 0 4px 0; font-size: 16px; font-weight: 700;">${item.label}</h4>
-      <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">${item.location || ''}</p>
-      <span style="background: ${cat.color}20; color: ${cat.color}; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 700;">
-        ${t(cat.key)}
-      </span>
-    </div>
-  `;
-}
+import { MAPTILER_STYLE, CATEGORIES, createMarkerElement, createPopupHTML, MAP_POPUP_CSS } from "@/lib/mapHelpers";
 
 export default function GlobalMap() {
   const navigate = useNavigate();
@@ -97,10 +47,10 @@ export default function GlobalMap() {
       const acts = allQueries[base+2]?.data || [];
       const trans = allQueries[base+3]?.data || [];
 
-      steps.forEach(s => s.latitude && markers.push({ ...s, type: 'step', label: s.title, tripName: trip.name }));
-      accs.forEach(a => a.latitude && markers.push({ ...a, type: 'hotel', label: a.name, tripName: trip.name, date: a.checkIn }));
-      acts.forEach(a => a.latitude && markers.push({ ...a, type: 'activity', label: a.name, tripName: trip.name, date: a.date }));
-      trans.forEach(tr => tr.latitude && markers.push({ ...tr, type: tr.type || 'transport', label: `${tr.departure} → ${tr.arrival}`, tripName: trip.name }));
+      steps.forEach(s => s.latitude && markers.push({ ...s, type: 'step', label: s.title, tripName: trip.name, customBadge: trip.name }));
+      accs.forEach(a => a.latitude && markers.push({ ...a, type: 'hotel', label: a.name, tripName: trip.name, date: a.checkIn, customBadge: trip.name, location: a.location }));
+      acts.forEach(a => a.latitude && markers.push({ ...a, type: 'activity', label: a.name, tripName: trip.name, date: a.date, customBadge: trip.name, location: a.location }));
+      trans.forEach(tr => tr.latitude && markers.push({ ...tr, type: tr.type || 'transport', label: `${tr.departure} → ${tr.arrival}`, tripName: trip.name, customBadge: trip.name }));
     });
     return markers;
   }, [trips, allQueries, tripsLoading, isLoadingDetails]);
@@ -129,7 +79,8 @@ export default function GlobalMap() {
     const bounds = new maplibregl.LngLatBounds();
     allMarkers.forEach(m => {
       const el = createMarkerElement(m.type);
-      const popup = new maplibregl.Popup({ offset: 25 }).setHTML(createPopupHTML(m, m.tripName, t));
+      const popup = new maplibregl.Popup({ offset: 25, closeButton: true, closeOnClick: false, maxWidth: "300px", className: "trip-map-popup" })
+        .setHTML(createPopupHTML(m, t));
       const marker = new maplibregl.Marker({ element: el })
         .setLngLat([m.longitude, m.latitude])
         .setPopup(popup)
@@ -145,6 +96,7 @@ export default function GlobalMap() {
 
   return (
     <div className="fixed inset-0 z-[100] bg-white flex flex-col h-screen w-screen overflow-hidden">
+      <style>{MAP_POPUP_CSS}</style>
       <header className="h-16 border-b flex items-center justify-between px-4 bg-white/80 backdrop-blur-md">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-full">

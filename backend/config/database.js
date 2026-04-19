@@ -197,6 +197,34 @@ export async function createTables() {
       comments TEXT,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(trip_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS shared_trip_bookings (
+      id SERIAL PRIMARY KEY,
+      shared_trip_id INTEGER NOT NULL REFERENCES shared_trips(id) ON DELETE CASCADE,
+      booking_type TEXT NOT NULL,
+      booking_id INTEGER NOT NULL,
+      is_shared BOOLEAN DEFAULT TRUE,
+      review TEXT,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(shared_trip_id, booking_type, booking_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS booking_participants (
+      id SERIAL PRIMARY KEY,
+      trip_id INTEGER NOT NULL,
+      booking_type TEXT NOT NULL,
+      booking_id INTEGER NOT NULL,
+      user_id INTEGER NOT NULL,
+      UNIQUE(booking_type, booking_id, user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS todo_items (
+      id SERIAL PRIMARY KEY,
+      trip_id INTEGER NOT NULL,
+      text TEXT NOT NULL,
+      is_done BOOLEAN DEFAULT FALSE,
+      list_type TEXT DEFAULT 'todo',
+      assigned_to INTEGER,
+      created_by INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`
   ];
 

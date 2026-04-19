@@ -13,6 +13,8 @@ import membersRoutes from './routes/members.js';
 import messagesRoutes from './routes/messages.js';
 import documentsRoutes from './routes/documents.js';
 import communityRoutes from './routes/community.js';
+import todosRoutes from './routes/todos.js';
+import participantsRoutes from './routes/participants.js';
 import { initMailer } from './config/mailConfig.js';
 
 const app = express();
@@ -63,6 +65,8 @@ app.use('/api/trips/:tripId/steps', tripStepsRoutes);
 app.use('/api/trips/:tripId/members', membersRoutes);
 app.use('/api/trips/:tripId/messages', messagesRoutes);
 app.use('/api/trips/:tripId/documents', documentsRoutes);
+app.use('/api/trips/:tripId/todos', todosRoutes);
+app.use('/api/trips/:tripId/participants', participantsRoutes);
 
 // Root level routes for non-nested resources
 app.use('/api/members', membersRoutes);

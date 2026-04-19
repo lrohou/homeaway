@@ -12,6 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { UserPlus, Mail, Trash2, Clock, Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslation } from '@/lib/LanguageContext';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import TodoList from '@/components/trip/TodoList';
 
 export default function TripMembers() {
   const { tripId } = useParams();
@@ -113,95 +115,111 @@ export default function TripMembers() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Current Members */}
-        <Card className="border-border shadow-sm overflow-hidden">
-          <CardHeader className="bg-muted/30 border-b">
-            <CardTitle className="text-lg flex items-center gap-2">{t('members.participants')} ({members.length})</CardTitle>
-            <CardDescription>{t('members.activeMembers')}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {members.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <Avatar className="w-10 h-10 border border-border shadow-sm">
-                      <AvatarImage src={member.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.user_id}`} />
-                      <AvatarFallback className="bg-primary/10 text-primary">{member.name?.[0].toUpperCase() || 'U'}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex flex-col">
-                      <p className="font-semibold text-sm">{member.name}</p>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-muted-foreground truncate max-w-[150px]">{member.email}</span>
-                        <Badge variant={member.role === 'owner' ? 'default' : 'secondary'} className="text-[10px] h-4 py-0 leading-none">
-                          {member.role === 'owner' ? t('members.owner') : t('members.traveler')}
-                        </Badge>
+      <Tabs defaultValue="members" className="w-full">
+        <TabsList className="mb-6 bg-muted/50 p-1">
+          <TabsTrigger value="members" className="px-6 rounded-md font-medium">{t('members.title')}</TabsTrigger>
+          <TabsTrigger value="todo" className="px-6 rounded-md font-medium">To-Do List</TabsTrigger>
+          <TabsTrigger value="shopping" className="px-6 rounded-md font-medium">Liste de courses</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="members" className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-0">
+          {/* Current Members */}
+          <Card className="border-border shadow-sm overflow-hidden">
+            <CardHeader className="bg-muted/30 border-b">
+              <CardTitle className="text-lg flex items-center gap-2">{t('members.participants')} ({members.length})</CardTitle>
+              <CardDescription>{t('members.activeMembers')}</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {members.map((member) => (
+                  <div key={member.id} className="flex items-center justify-between p-4 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <Avatar className="w-10 h-10 border border-border shadow-sm">
+                        <AvatarImage src={member.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${member.user_id}`} />
+                        <AvatarFallback className="bg-primary/10 text-primary">{member.name?.[0].toUpperCase() || 'U'}</AvatarFallback>
+                      </Avatar>
+                      <div className="flex flex-col">
+                        <p className="font-semibold text-sm">{member.name}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground truncate max-w-[150px]">{member.email}</span>
+                          <Badge variant={member.role === 'owner' ? 'default' : 'secondary'} className="text-[10px] h-4 py-0 leading-none">
+                            {member.role === 'owner' ? t('members.owner') : t('members.traveler')}
+                          </Badge>
+                        </div>
                       </div>
                     </div>
+                    {member.role !== 'owner' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                        onClick={() => removeMemberMutation.mutate(member.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    )}
                   </div>
-                  {member.role !== 'owner' && (
+                ))}
+                {membersLoading && (
+                  <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>
+                )}
+                {members.length === 0 && !membersLoading && (
+                  <div className="p-8 text-center text-muted-foreground">{t('members.noMembers')}</div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Pending Invitations */}
+          <Card className="border-border shadow-sm overflow-hidden">
+            <CardHeader className="bg-amber-50/30 border-b">
+              <CardTitle className="text-lg flex items-center gap-2 text-amber-900"><Clock className="w-5 h-5" /> {t('members.invitations')} ({invitations.length})</CardTitle>
+              <CardDescription>{t('members.pendingResponse')}</CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {invitations.map((inv) => (
+                  <div key={inv.id} className="flex items-center justify-between p-4 hover:bg-amber-50/20 transition-colors">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center border border-amber-200">
+                        <Mail className="w-5 h-5 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-sm">{inv.email}</p>
+                        <p className="text-xs text-amber-600 font-medium">{t('members.pendingInvite')}</p>
+                      </div>
+                    </div>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                      onClick={() => removeMemberMutation.mutate(member.id)}
+                      onClick={() => cancelInvitationMutation.mutate(inv.id)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
-                  )}
-                </div>
-              ))}
-              {membersLoading && (
-                <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>
-              )}
-              {members.length === 0 && !membersLoading && (
-                <div className="p-8 text-center text-muted-foreground">{t('members.noMembers')}</div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Pending Invitations */}
-        <Card className="border-border shadow-sm overflow-hidden">
-          <CardHeader className="bg-amber-50/30 border-b">
-            <CardTitle className="text-lg flex items-center gap-2 text-amber-900"><Clock className="w-5 h-5" /> {t('members.invitations')} ({invitations.length})</CardTitle>
-            <CardDescription>{t('members.pendingResponse')}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {invitations.map((inv) => (
-                <div key={inv.id} className="flex items-center justify-between p-4 hover:bg-amber-50/20 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center border border-amber-200">
-                      <Mail className="w-5 h-5 text-amber-600" />
-                    </div>
-                    <div>
-                      <p className="font-semibold text-sm">{inv.email}</p>
-                      <p className="text-xs text-amber-600 font-medium">{t('members.pendingInvite')}</p>
-                    </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-destructive hover:bg-destructive/10"
-                    onClick={() => cancelInvitationMutation.mutate(inv.id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              ))}
-              {invitationsLoading && (
-                <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>
-              )}
-              {invitations.length === 0 && !invitationsLoading && (
-                <div className="p-12 text-center text-muted-foreground">
-                  <p className="text-sm">{t('members.noPending')}</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+                ))}
+                {invitationsLoading && (
+                  <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" /></div>
+                )}
+                {invitations.length === 0 && !invitationsLoading && (
+                  <div className="p-12 text-center text-muted-foreground">
+                    <p className="text-sm">{t('members.noPending')}</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="todo" className="mt-0 max-w-3xl">
+          <TodoList tripId={tripId} title="Checklist du Voyage" type="general" />
+        </TabsContent>
+
+        <TabsContent value="shopping" className="mt-0 max-w-3xl">
+          <TodoList tripId={tripId} title="Liste de Courses" type="shopping" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

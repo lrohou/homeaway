@@ -91,6 +91,11 @@ export default function TripExpenses() {
     queryFn: () => api.accommodations.list(tripId),
   });
 
+  const { data: participants = [] } = useQuery({
+    queryKey: ["participants", tripId],
+    queryFn: () => api.participants.list(tripId),
+  });
+
   const allExpenses = useMemo(() => {
     const actExp = (activities || [])
       .filter((a) => a.price > 0)
@@ -101,7 +106,7 @@ export default function TripExpenses() {
         category: "activity",
         date: a.date,
         paid_by: a.paid_by,
-        split_between: [],
+        split_between: participants.filter(p => p.booking_type === 'activity' && String(p.booking_id) === String(a.id)).map(p => memberMap[p.user_id]?.email).filter(Boolean),
         isActivity: true
       }));
     const transExp = (transports || [])
@@ -113,7 +118,7 @@ export default function TripExpenses() {
         category: "transport",
         date: tr.departureTime || new Date().toISOString(),
         paid_by: tr.paid_by,
-        split_between: [],
+        split_between: participants.filter(p => p.booking_type === 'transport' && String(p.booking_id) === String(tr.id)).map(p => memberMap[p.user_id]?.email).filter(Boolean),
         isActivity: true
       }));
 
@@ -126,7 +131,7 @@ export default function TripExpenses() {
         category: "accommodation",
         date: a.checkIn || new Date().toISOString(),
         paid_by: a.paid_by,
-        split_between: [],
+        split_between: participants.filter(p => p.booking_type === 'accommodation' && String(p.booking_id) === String(a.id)).map(p => memberMap[p.user_id]?.email).filter(Boolean),
         isActivity: true
       }));
 
@@ -146,17 +151,18 @@ export default function TripExpenses() {
     e.preventDefault();
     setSaving(true);
     try {
+      const splitList = form.split_between?.length > 0 ? form.split_between : tripMembers.map(m => m.email);
       await api.expenses.create(tripId, {
         title: form.title,
         amount: Number(form.amount),
         category: form.category,
         date: form.date,
         paid_by: Number(form.paid_by),
-        split_between: tripMembers.map(m => m.email),
+        split_between: splitList,
       });
       queryClient.invalidateQueries({ queryKey: ["expenses", tripId] });
       setShowAdd(false);
-      setForm({ title: "", amount: "", category: "food", date: new Date().toISOString().split('T')[0], paid_by: user?.id || "" });
+      setForm({ title: "", amount: "", category: "food", date: new Date().toISOString().split('T')[0], paid_by: user?.id || "", split_between: [] });
     } catch (err) {
       console.error("Error adding expense:", err);
     } finally {
@@ -180,29 +186,31 @@ export default function TripExpenses() {
       if (!payerEmail) return; // Skip items with no valid payer
 
       if (e.isActivity) {
-        // For reservations (hotels, transports, activities), split equal among ALL members
-        const splitCount = tripMembers.length || 1;
+        // For reservations (hotels, transports, activities), use mapped participants or fallback to all
+        const splitEmails = e.split_between?.length > 0 ? e.split_between : tripMembers.map(m => m.email);
+        const splitCount = splitEmails.length;
         const perPerson = e.amount / splitCount;
         
         // Credit the payer
         bal[payerEmail] = (bal[payerEmail] || 0) + e.amount - perPerson;
 
-        // Debit everyone else
-        tripMembers.forEach((m) => {
-          if (m.email !== payerEmail) {
-            bal[m.email] = (bal[m.email] || 0) - perPerson;
+        // Debit everyone else in splitEmails
+        splitEmails.forEach((mEmail) => {
+          if (mEmail !== payerEmail) {
+            bal[mEmail] = (bal[mEmail] || 0) - perPerson;
           }
         });
       } else {
         // For standard expenses, use split_between list
-        const splitCount = e.split_between?.length || 1;
+        const splitEmails = e.split_between?.length > 0 ? e.split_between : tripMembers.map(m => m.email);
+        const splitCount = splitEmails.length;
         const perPerson = e.amount / splitCount;
         
         // Credit the payer
         bal[payerEmail] = (bal[payerEmail] || 0) + e.amount - perPerson;
         
         // Debit the people in split_between
-        e.split_between?.forEach((mEmail) => {
+        splitEmails.forEach((mEmail) => {
           if (mEmail !== payerEmail) {
             bal[mEmail] = (bal[mEmail] || 0) - perPerson;
           }
@@ -404,6 +412,27 @@ export default function TripExpenses() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+            <div className="space-y-2 pt-2 border-t border-border mt-3">
+              <Label>Pour qui ? (par défaut : tout le monde)</Label>
+              <div className="flex flex-col gap-2 max-h-32 overflow-y-auto mt-2">
+                {tripMembers.map(m => (
+                  <label key={m.email} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 p-1.5 rounded-md">
+                    <input
+                      type="checkbox"
+                      checked={form.split_between?.includes(m.email) || (!form.split_between?.length && true)}
+                      onChange={(e) => {
+                        let current = [...(form.split_between || tripMembers.map(tm => tm.email))];
+                        if (e.target.checked) current.push(m.email);
+                        else current = current.filter(em => em !== m.email);
+                        setForm(f => ({ ...f, split_between: current }));
+                      }}
+                      className="rounded border-slate-300 w-4 h-4 text-primary focus:ring-primary/20"
+                    />
+                    {m.name || m.email}
+                  </label>
+                ))}
               </div>
             </div>
             <Button

@@ -25,6 +25,7 @@ export default function NewTrip() {
     location_lat: "",
     location_lng: "",
     budget: "",
+    cover_image: "",
   });
 
   if (!isAuthenticated) {
@@ -64,7 +65,10 @@ export default function NewTrip() {
 
       // Call API with real endpoint
       console.log("Creating trip with data:", form);
-      const response = await api.trips.create(form);
+      const response = await api.trips.create({
+        ...form,
+        budget: form.budget ? Number(form.budget) : null
+      });
       console.log("Trip created:", response);
 
       navigate(`/trip/${response.id}/planning`);
@@ -72,6 +76,21 @@ export default function NewTrip() {
       console.error("Trip creation error:", err);
       setError(err.message || t('common.error'));
       setSaving(false);
+    }
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        setError("L'image est trop volumineuse (max 2MB).");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm(f => ({ ...f, cover_image: reader.result }));
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -213,6 +232,35 @@ export default function NewTrip() {
             onChange={(e) => setForm((f) => ({ ...f, budget: e.target.value }))}
             className="h-12"
           />
+        </div>
+
+        {/* Cover Image */}
+        <div className="space-y-3">
+          <Label>{t('community.coverImage')} (Optionnel)</Label>
+          <div className="flex flex-col gap-3">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="cursor-pointer file:text-sm file:font-semibold file:text-primary file:bg-primary/10 file:border-0 file:rounded-full file:px-4 file:py-1 file:mr-4 hover:file:bg-primary/20"
+            />
+            <div className="flex items-center gap-4">
+              <div className="flex-1 h-px bg-border"></div>
+              <span className="text-xs text-muted-foreground font-medium uppercase">Ou via URL</span>
+              <div className="flex-1 h-px bg-border"></div>
+            </div>
+            <Input
+              placeholder="https://example.com/photo.jpg"
+              value={form.cover_image}
+              onChange={e => setForm(f => ({ ...f, cover_image: e.target.value }))}
+              className="h-12"
+            />
+          </div>
+          {form.cover_image && (
+            <div className="mt-4 rounded-xl overflow-hidden h-40 bg-secondary border border-border">
+              <img src={form.cover_image} alt="Preview" className="w-full h-full object-cover" onError={e => e.target.style.display='none'} />
+            </div>
+          )}
         </div>
 
         {/* Form Actions */}

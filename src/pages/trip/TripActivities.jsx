@@ -33,7 +33,8 @@ export default function TripActivities() {
     longitude: '',
     description: '',
     location: '',
-    paid_by: ''
+    paid_by: '',
+    participants: []
   });
   const { user } = useAuth();
 
@@ -58,9 +59,19 @@ export default function TripActivities() {
   }, [members, user]);
 
   const createMutation = useMutation({
-    mutationFn: (data) => api.activities.create(tripId, data),
+    mutationFn: async (data) => {
+      const res = await api.activities.create(tripId, data.payload);
+      const userIds = data.participants?.length > 0 ? data.participants : tripMembers.map(m => m.user_id);
+      await api.participants.set(tripId, {
+        booking_type: 'activity',
+        booking_id: res.id,
+        user_ids: userIds.filter(Boolean)
+      });
+      return res;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['activities', tripId] });
+      queryClient.invalidateQueries({ queryKey: ['participants', tripId] });
       setIsOpen(false);
       setFormData({
         name: '',
@@ -73,7 +84,8 @@ export default function TripActivities() {
         longitude: '',
         description: '',
         location: '',
-        paid_by: ''
+        paid_by: '',
+        participants: []
       });
     }
   });
@@ -86,13 +98,16 @@ export default function TripActivities() {
   const handleSubmit = (e) => {
     e.preventDefault();
     createMutation.mutate({
-      ...formData,
-      price: formData.price ? parseFloat(formData.price) : 0,
-      duration: formData.duration ? parseInt(formData.duration) : 60,
-      latitude: formData.latitude ? parseFloat(formData.latitude) : 0,
-      longitude: formData.longitude ? parseFloat(formData.longitude) : 0,
-      location: formData.location || '',
-      paid_by: formData.paid_by === 'none' || !formData.paid_by ? null : Number(formData.paid_by)
+      payload: {
+        ...formData,
+        price: formData.price ? parseFloat(formData.price) : 0,
+        duration: formData.duration ? parseInt(formData.duration) : 60,
+        latitude: formData.latitude ? parseFloat(formData.latitude) : 0,
+        longitude: formData.longitude ? parseFloat(formData.longitude) : 0,
+        location: formData.location || '',
+        paid_by: formData.paid_by === 'none' || !formData.paid_by ? null : Number(formData.paid_by)
+      },
+      participants: formData.participants
     });
   };
 
@@ -193,6 +208,27 @@ export default function TripActivities() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+              </div>
+              <div className="space-y-2 pt-2 border-t border-border mt-3">
+                <Label>Pour qui ? (par défaut : tout le monde)</Label>
+                <div className="flex flex-col gap-2 max-h-32 overflow-y-auto mt-2">
+                  {tripMembers.map(m => (
+                    <label key={m.user_id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 p-1.5 rounded-md">
+                      <input
+                        type="checkbox"
+                        checked={formData.participants?.includes(m.user_id) || (!formData.participants?.length && true)}
+                        onChange={(e) => {
+                          let current = [...(formData.participants || tripMembers.map(tm => tm.user_id))];
+                          if (e.target.checked) current.push(m.user_id);
+                          else current = current.filter(id => id !== m.user_id);
+                          setFormData(f => ({ ...f, participants: current }));
+                        }}
+                        className="rounded border-slate-300 w-4 h-4 text-primary focus:ring-primary/20"
+                      />
+                      {m.name || m.email}
+                    </label>
+                  ))}
                 </div>
               </div>
               <div className="space-y-2">

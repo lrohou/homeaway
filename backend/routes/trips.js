@@ -50,15 +50,15 @@ router.get('/:id', authenticateToken, async (req, res) => {
 // Create trip
 router.post('/', authenticateToken, async (req, res) => {
   try {
-    const { name, description, start_date, end_date, location_lat, location_lng, location_name, budget } = req.body;
+    const { name, description, start_date, end_date, location_lat, location_lng, location_name, budget, cover_image } = req.body;
 
     if (!name || !start_date || !end_date) {
       return res.status(400).json({ error: 'Name, start_date, and end_date are required' });
     }
 
     const result = await run(
-      `INSERT INTO trips (name, description, start_date, end_date, owner_id, location_lat, location_lng, location_name, budget)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO trips (name, description, start_date, end_date, owner_id, location_lat, location_lng, location_name, budget, cover_image)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         name, 
         description, 
@@ -68,7 +68,8 @@ router.post('/', authenticateToken, async (req, res) => {
         location_lat === "" ? null : location_lat, 
         location_lng === "" ? null : location_lng, 
         location_name, 
-        budget === "" ? null : budget
+        budget === "" ? null : budget,
+        cover_image || null
       ]
     );
 
@@ -93,7 +94,7 @@ router.post('/', authenticateToken, async (req, res) => {
 router.put('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, description, start_date, end_date, status, budget } = req.body;
+    const { name, description, start_date, end_date, status, budget, cover_image } = req.body;
 
     // Check if user is owner
     const members = await query(
@@ -106,8 +107,8 @@ router.put('/:id', authenticateToken, async (req, res) => {
     }
 
     await run(
-      'UPDATE trips SET name = ?, description = ?, start_date = ?, end_date = ?, status = ?, budget = ? WHERE id = ?',
-      [name, description, start_date, end_date, status, budget, id]
+      'UPDATE trips SET name = ?, description = ?, start_date = ?, end_date = ?, status = ?, budget = ?, cover_image = ? WHERE id = ?',
+      [name, description, start_date, end_date, status, budget, cover_image || null, id]
     );
 
     const trips = await query('SELECT * FROM trips WHERE id = ?', [id]);
