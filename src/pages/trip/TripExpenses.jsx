@@ -11,7 +11,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from "@/components/ui/dialog";
 import { Plus, Trash2, Loader2, Receipt, ArrowUpRight, ArrowDownLeft, Scale } from "lucide-react";
 import { format } from "date-fns";
@@ -358,6 +358,7 @@ export default function TripExpenses() {
         <DialogContent className="max-w-md rounded-3xl">
           <DialogHeader>
             <DialogTitle className="font-display text-xl">{t('expenses.newExpense')}</DialogTitle>
+            <DialogDescription className="hidden">Formulaire d'ajout d'une nouvelle dépense</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleAdd} className="space-y-4 mt-2">
             <div className="space-y-2">
@@ -454,7 +455,7 @@ export default function TripExpenses() {
             <div className="absolute bottom-0 left-0 w-24 h-24 bg-indigo-900/30 rounded-full blur-xl translate-y-1/2 -translate-x-1/2" />
             <DialogHeader className="relative z-10">
               <DialogTitle className="font-display text-2xl text-white">{t('expenses.balanceTitle')}</DialogTitle>
-              <p className="text-blue-100/80 text-sm mt-1 mb-2">{t('expenses.balanceDesc')}</p>
+              <DialogDescription className="text-blue-100/80 text-sm mt-1 mb-2">{t('expenses.balanceDesc')}</DialogDescription>
             </DialogHeader>
           </div>
           

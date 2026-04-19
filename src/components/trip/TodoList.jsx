@@ -17,7 +17,7 @@ export default function TodoList({ tripId, title, type = 'general' }) {
   });
 
   const createMutation = useMutation({
-    mutationFn: (text) => api.todos.create(tripId, { content: text, type }),
+    mutationFn: (textValue) => api.todos.create(tripId, { text: textValue, list_type: type }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['todos', tripId, type] });
       setNewItemText("");
@@ -25,7 +25,7 @@ export default function TodoList({ tripId, title, type = 'general' }) {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, is_completed }) => api.todos.update(tripId, id, { is_completed }),
+    mutationFn: ({ id, is_done }) => api.todos.update(tripId, id, { is_done }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos', tripId, type] })
   });
 
@@ -66,14 +66,14 @@ export default function TodoList({ tripId, title, type = 'general' }) {
             <div className="text-center py-6 text-sm text-muted-foreground">La liste est vide.</div>
           ) : (
             todos.map(todo => (
-              <div key={todo.id} className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${todo.is_completed ? 'bg-secondary/50 border-secondary' : 'bg-card border-border hover:border-primary/30'}`}>
+              <div key={todo.id} className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${todo.is_done ? 'bg-secondary/50 border-secondary' : 'bg-card border-border hover:border-primary/30'}`}>
                 <div className="flex items-center gap-3 overflow-hidden flex-1">
                   <Checkbox 
-                    checked={todo.is_completed === 1 || todo.is_completed === true}
-                    onCheckedChange={(checked) => updateMutation.mutate({ id: todo.id, is_completed: checked ? 1 : 0 })}
+                    checked={todo.is_done === 1 || todo.is_done === true}
+                    onCheckedChange={(checked) => updateMutation.mutate({ id: todo.id, is_done: checked ? 1 : 0 })}
                   />
-                  <span className={`text-sm truncate ${todo.is_completed ? 'line-through text-muted-foreground' : 'font-medium'}`}>
-                    {todo.content}
+                  <span className={`text-sm truncate ${todo.is_done ? 'line-through text-muted-foreground' : 'font-medium'}`}>
+                    {todo.text}
                   </span>
                 </div>
                 <Button 
