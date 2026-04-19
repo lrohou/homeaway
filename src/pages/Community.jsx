@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/api/apiClient";
 import { useTranslation } from "@/lib/LanguageContext";
 import { motion } from "framer-motion";
-import { Calendar, User, MapPin, Compass, Search } from "lucide-react";
+import { Calendar, User, MapPin, Compass, Search, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import AddressAutocomplete from "@/components/ui/AddressAutocomplete";
 
 const getDuration = (start, end) => {
   if (!start || !end) return 0;
@@ -19,6 +21,9 @@ const getDuration = (start, end) => {
 export default function Community() {
   const { t } = useTranslation();
   const [search, setSearch] = useState("");
+  const [duration, setDuration] = useState("all");
+  const [location, setLocation] = useState(null);
+  const [showLiked, setShowLiked] = useState(false);
 
   const { data: sharedTrips = [], isLoading } = useQuery({
     queryKey: ["community-trips"],
@@ -26,14 +31,44 @@ export default function Community() {
   });
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return sharedTrips;
-    const q = search.toLowerCase();
-    return sharedTrips.filter((trip) =>
-      trip.trip_name?.toLowerCase().includes(q) ||
-      trip.location_name?.toLowerCase().includes(q) ||
-      trip.user_name?.toLowerCase().includes(q)
-    );
-  }, [sharedTrips, search]);
+    let result = sharedTrips;
+
+    // Filter by text search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      result = result.filter((trip) =>
+        trip.trip_name?.toLowerCase().includes(q) ||
+        trip.user_name?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter by destination location exact
+    if (location && location.address) {
+      // Just check if the string matches loosely or if the destination matches
+      // The AddressAutocomplete sometimes returns city, we can just do a string includes on location_name
+      const locQ = location.address.split(',')[0].toLowerCase();
+      result = result.filter(trip => trip.location_name?.toLowerCase().includes(locQ));
+    }
+
+    // Filter by duration
+    if (duration !== "all") {
+      result = result.filter(trip => {
+        const d = getDuration(trip.start_date, trip.end_date);
+        if (duration === "1-3") return d <= 3;
+        if (duration === "4-7") return d >= 4 && d <= 7;
+        if (duration === "8-14") return d >= 8 && d <= 14;
+        if (duration === "15+") return d >= 15;
+        return true;
+      });
+    }
+
+    // Filter by liked
+    if (showLiked) {
+      result = result.filter(trip => trip.is_liked_by_user);
+    }
+
+    return result;
+  }, [sharedTrips, search, duration, location, showLiked]);
 
   return (
     <div className="space-y-8">
@@ -43,15 +78,55 @@ export default function Community() {
         <p className="text-muted-foreground text-lg">{t('community.subtitle')}</p>
       </motion.div>
 
-      {/* Search bar */}
-      <div className="relative max-w-md">
-        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder={t('community.searchPlaceholder')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10 h-11 rounded-full border-border bg-secondary/30 focus:bg-card"
-        />
+      {/* Search and Filters */}
+      <div className="flex flex-col gap-4 bg-card border border-border p-4 rounded-3xl shadow-sm">
+        <div className="flex gap-2 p-1 bg-secondary/50 rounded-full mb-2 self-start">
+          <button
+            onClick={() => setShowLiked(false)}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${!showLiked ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            Toutes les recherches
+          </button>
+          <button
+            onClick={() => setShowLiked(true)}
+            className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${showLiked ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+          >
+            <Heart className={`w-4 h-4 ${showLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
+            Mes Favoris
+          </button>
+        </div>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+            <Input
+              placeholder={t('community.searchPlaceholder') || "Rechercher un voyage, un créateur..."}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 h-11 rounded-xl border-border bg-background"
+            />
+          </div>
+          <div className="flex-1">
+            <AddressAutocomplete
+              placeholder="Filtrer par destination..."
+              onSelect={loc => setLocation(loc)}
+              defaultValue=""
+            />
+          </div>
+          <div className="w-full md:w-48 shrink-0">
+            <Select value={duration} onValueChange={setDuration}>
+              <SelectTrigger className="h-11 rounded-xl border-border bg-background">
+                <SelectValue placeholder="Durée" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes durées</SelectItem>
+                <SelectItem value="1-3">Week-end (1-3j)</SelectItem>
+                <SelectItem value="4-7">Semaine (4-7j)</SelectItem>
+                <SelectItem value="8-14">2 Semaines (8-14j)</SelectItem>
+                <SelectItem value="15+">+ de 15 jours</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
@@ -106,6 +181,21 @@ export default function Community() {
                         {getDuration(trip.start_date, trip.end_date)} {t('community.days')}
                       </Badge>
                     </div>
+                    {trip.like_count > 0 && (
+                      <div className="absolute top-4 right-4 group-hover:-translate-y-0.5 transition-transform">
+                        <Badge className="bg-rose-500/90 text-white border-none shadow-sm flex items-center gap-1.5 px-2.5 py-1 backdrop-blur-md">
+                          <Heart className="w-3.5 h-3.5 fill-current" />
+                          <span className="font-semibold">{trip.like_count}</span>
+                        </Badge>
+                      </div>
+                    )}
+                    {trip.is_liked_by_user && trip.like_count === 0 && (
+                      <div className="absolute top-4 right-4 group-hover:-translate-y-0.5 transition-transform">
+                        <Badge className="bg-rose-500/90 text-white border-none shadow-sm flex items-center gap-1.5 px-2.5 py-1 backdrop-blur-md">
+                          <Heart className="w-3.5 h-3.5 fill-current" />
+                        </Badge>
+                      </div>
+                    )}
                   </div>
 
                   {/* Content */}

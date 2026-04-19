@@ -225,6 +225,13 @@ export async function createTables() {
       assigned_to INTEGER,
       created_by INTEGER NOT NULL,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS trip_likes (
+      id SERIAL PRIMARY KEY,
+      shared_trip_id INTEGER NOT NULL REFERENCES shared_trips(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(shared_trip_id, user_id)
     )`
   ];
 

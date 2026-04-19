@@ -82,6 +82,12 @@ const translations = {
     "dashboard.welcome": "Bienvenue sur HomeAway",
     "dashboard.welcomeDesc": "Planifiez et gérez vos prochains voyages",
     "dashboard.locationPlaceholder": "Ex: Barcelone, Espagne",
+    "dashboard.searchPlaceholder": "Rechercher un voyage",
+    "dashboard.search": "Rechercher",
+    "dasboard.all": "Tous",
+    "dasboard.upcoming": "À venir",
+    "dasboard.ongoing": "En cours",
+    "dasboard.past": "Passés",
 
     // New Trip
     "newTrip.title": "Nouveau voyage",
@@ -291,6 +297,8 @@ const translations = {
     "community.viewPlanning": "Voir le planning",
     "community.viewMap": "Voir la carte",
     "community.viewBookings": "Voir les réservations",
+    "community.search": "Rechercher",
+    "community.searchPlaceholder": "Rechercher un voyage",
   },
 
   en: {
@@ -588,6 +596,8 @@ const translations = {
     "community.viewPlanning": "View planning",
     "community.viewMap": "View map",
     "community.viewBookings": "View bookings",
+    "commmunity.search": "Search",
+    "commmunity.searchPlaceholder": "Search a trip",
   },
 };
 

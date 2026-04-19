@@ -141,6 +141,8 @@ export const api = {
     unshare: async (tripId) => apiCall(`/community/unshare/${tripId}`, { method: 'DELETE' }),
     getSettings: async (tripId) => apiCall(`/community/settings/${tripId}`, { method: 'GET' }),
     getContent: async (id) => apiCall(`/community/${id}/content`, { method: 'GET' }),
+    like: async (id) => apiCall(`/community/${id}/like`, { method: 'POST' }),
+    unlike: async (id) => apiCall(`/community/${id}/like`, { method: 'DELETE' }),
   },
   todos: {
     list: async (tripId, type) => apiCall(`/trips/${tripId}/todos${type ? `?type=${type}` : ''}`, { method: 'GET' }),

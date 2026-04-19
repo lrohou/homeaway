@@ -8,12 +8,14 @@ const router = express.Router();
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const sharedTrips = await query(`
-      SELECT st.*, t.name as trip_name, t.start_date, t.end_date, t.location_name, u.name as user_name
+      SELECT st.*, t.name as trip_name, t.start_date, t.end_date, t.location_name, u.name as user_name,
+      (SELECT COUNT(*) FROM trip_likes WHERE shared_trip_id = st.id) as like_count,
+      EXISTS(SELECT 1 FROM trip_likes WHERE shared_trip_id = st.id AND user_id = $1) as is_liked_by_user
       FROM shared_trips st
       JOIN trips t ON st.trip_id = t.id
       JOIN users u ON st.user_id = u.id
       ORDER BY st.created_at DESC
-    `);
+    `, [req.userId]);
     res.json(sharedTrips);
   } catch (error) {
     console.error('List community trips error:', error);
@@ -26,16 +28,46 @@ router.get('/:id', authenticateToken, async (req, res) => {
   try {
     const { id } = req.params;
     const sharedTrip = await query(`
-      SELECT st.*, t.name as trip_name, t.start_date, t.end_date, t.location_name, u.name as user_name
+      SELECT st.*, t.name as trip_name, t.start_date, t.end_date, t.location_name, u.name as user_name,
+      (SELECT COUNT(*) FROM trip_likes WHERE shared_trip_id = st.id) as like_count,
+      EXISTS(SELECT 1 FROM trip_likes WHERE shared_trip_id = st.id AND user_id = $1) as is_liked_by_user
       FROM shared_trips st
       JOIN trips t ON st.trip_id = t.id
       JOIN users u ON st.user_id = u.id
-      WHERE st.id = ?
-    `, [id]);
+      WHERE st.id = $2
+    `, [req.userId, id]);
     if (sharedTrip.length === 0) return res.status(404).json({ error: 'Shared trip not found' });
     res.json(sharedTrip[0]);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch community trip details' });
+  }
+});
+
+// Like a shared trip
+router.post('/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await run(`
+      INSERT INTO trip_likes (shared_trip_id, user_id) 
+      VALUES ($1, $2) ON CONFLICT DO NOTHING
+    `, [id, req.userId]);
+    res.json({ message: 'Liked successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to like trip' });
+  }
+});
+
+// Unlike a shared trip
+router.delete('/:id/like', authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await run(`
+      DELETE FROM trip_likes 
+      WHERE shared_trip_id = $1 AND user_id = $2
+    `, [id, req.userId]);
+    res.json({ message: 'Unliked successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to unlike trip' });
   }
 });
 

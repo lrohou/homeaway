@@ -2,9 +2,9 @@ import React, { useRef, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useParams, Link } from "react-router-dom";
 import { api } from "@/api/apiClient";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { ArrowLeft, Calendar, User, MapPin, BedDouble, Plane, Zap, Navigation, Maximize2, Minimize2, X } from "lucide-react";
+import { ArrowLeft, Calendar, User, MapPin, BedDouble, Plane, Zap, Navigation, Maximize2, Minimize2, X, Heart } from "lucide-react";
 import { format, eachDayOfInterval, parseISO } from "date-fns";
 import { useTranslation } from "@/lib/LanguageContext";
 import { Badge } from "@/components/ui/badge";
@@ -150,6 +150,7 @@ function CommunityMap({ accommodations, transports, activities, steps }) {
 
 export default function CommunityTripView() {
   const { sharedTripId } = useParams();
+  const queryClient = useQueryClient();
   const { t } = useTranslation();
 
   const { data: sharedInfo, isLoading: infoLoading } = useQuery({
@@ -162,6 +163,46 @@ export default function CommunityTripView() {
     queryFn: () => api.community.getContent(sharedTripId),
     enabled: !!sharedTripId,
   });
+
+  const likeMutation = useMutation({
+    mutationFn: () => api.community.like(sharedTripId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["community-trip", sharedTripId] });
+      const previous = queryClient.getQueryData(["community-trip", sharedTripId]);
+      queryClient.setQueryData(["community-trip", sharedTripId], old => ({
+        ...old,
+        is_liked_by_user: true,
+        like_count: Number(old.like_count || 0) + 1
+      }));
+      return { previous };
+    },
+    onError: (err, newTodo, context) => queryClient.setQueryData(["community-trip", sharedTripId], context.previous),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["community-trip", sharedTripId] }),
+  });
+
+  const unlikeMutation = useMutation({
+    mutationFn: () => api.community.unlike(sharedTripId),
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: ["community-trip", sharedTripId] });
+      const previous = queryClient.getQueryData(["community-trip", sharedTripId]);
+      queryClient.setQueryData(["community-trip", sharedTripId], old => ({
+        ...old,
+        is_liked_by_user: false,
+        like_count: Math.max(0, Number(old.like_count || 0) - 1)
+      }));
+      return { previous };
+    },
+    onError: (err, newTodo, context) => queryClient.setQueryData(["community-trip", sharedTripId], context.previous),
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ["community-trip", sharedTripId] }),
+  });
+
+  const handleLikeToggle = () => {
+    if (sharedInfo?.is_liked_by_user) {
+      unlikeMutation.mutate();
+    } else {
+      likeMutation.mutate();
+    }
+  };
 
   const isLoading = infoLoading || contentLoading;
   const steps = content?.steps || [];
@@ -235,6 +276,22 @@ export default function CommunityTripView() {
           </div>
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+        <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+          <Button
+            size="icon"
+            onClick={handleLikeToggle}
+            className={`w-12 h-12 rounded-full shadow-lg backdrop-blur-md transition-all ${
+              sharedInfo.is_liked_by_user 
+                ? 'bg-rose-500 hover:bg-rose-600 text-white' 
+                : 'bg-white/20 hover:bg-white/40 text-white'
+            }`}
+          >
+            <Heart className={`w-6 h-6 ${sharedInfo.is_liked_by_user ? 'fill-current' : ''}`} />
+          </Button>
+          <div className="bg-white/90 backdrop-blur-sm text-rose-600 px-3 py-1 rounded-full text-center text-sm font-bold shadow-md">
+            {sharedInfo.like_count || 0}
+          </div>
+        </div>
         <div className="absolute bottom-0 left-0 right-0 p-8">
           <h1 className="font-display text-4xl font-bold text-white mb-2">{sharedInfo.trip_name}</h1>
           <div className="flex flex-wrap items-center gap-4 text-white/80 text-sm">
