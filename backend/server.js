@@ -77,7 +77,15 @@ app.use('/api/transports', transportsRoutes);
 app.use('/api/expenses', expensesRoutes);
 app.use('/api/documents', documentsRoutes);
 
-// Health check
+// Root and health check routes
+app.get('/', (req, res) => {
+  res.status(200).send('HomeAway API is running!');
+});
+
+app.get('/ping', (req, res) => {
+  res.status(200).send('Pong');
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Server is running' });
 });
@@ -109,8 +117,4 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server is running on port ${PORT}`);
   console.log(`🌍 URL: ${process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`}`);
   console.log(`📦 Environment: ${process.env.NODE_ENV}`);
-});
-
-app.get("/ping", (req, res) => {
-  res.status(200).send("Pong");
 });
