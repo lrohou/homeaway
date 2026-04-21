@@ -211,7 +211,7 @@ export default function TripActivities() {
                 </div>
               </div>
               <div className="space-y-2 pt-2 border-t border-border mt-3">
-                <Label>Pour qui ? (par défaut : tout le monde)</Label>
+                <Label>{t('planning.forWho')}</Label>
                 <div className="flex flex-col gap-2 max-h-32 overflow-y-auto mt-2">
                   {tripMembers.map(m => (
                     <label key={m.user_id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-muted/50 p-1.5 rounded-md">

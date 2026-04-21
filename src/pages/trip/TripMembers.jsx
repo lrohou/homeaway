@@ -116,10 +116,10 @@ export default function TripMembers() {
       )}
 
       <Tabs defaultValue="members" className="w-full">
-        <TabsList className="mb-6 bg-muted/50 p-1">
-          <TabsTrigger value="members" className="px-6 rounded-md font-medium">{t('members.title')}</TabsTrigger>
-          <TabsTrigger value="todo" className="px-6 rounded-md font-medium">To-Do List</TabsTrigger>
-          <TabsTrigger value="shopping" className="px-6 rounded-md font-medium">Liste de courses</TabsTrigger>
+        <TabsList className="mb-6 bg-muted/50 p-1 flex flex-wrap gap-1 h-auto">
+          <TabsTrigger value="members" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('members.title')}</TabsTrigger>
+          <TabsTrigger value="todo" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('members.todoTab')}</TabsTrigger>
+          <TabsTrigger value="shopping" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('members.shoppingTab')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="members" className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-0">
@@ -213,11 +213,11 @@ export default function TripMembers() {
         </TabsContent>
 
         <TabsContent value="todo" className="mt-0 max-w-3xl">
-          <TodoList tripId={tripId} title="Checklist du Voyage" type="general" />
+          <TodoList tripId={tripId} title={t('members.todoList')} type="general" />
         </TabsContent>
 
         <TabsContent value="shopping" className="mt-0 max-w-3xl">
-          <TodoList tripId={tripId} title="Liste de Courses" type="shopping" />
+          <TodoList tripId={tripId} title={t('members.shoppingList')} type="shopping" />
         </TabsContent>
       </Tabs>
     </div>

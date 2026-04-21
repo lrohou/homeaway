@@ -83,14 +83,40 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* Prevent overflow globally */
+    min-width: 0;
+  }
+
+  html {
+    /* Smooth scrolling */
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
   }
 
   body {
     @apply bg-background text-foreground antialiased selection:bg-accent/30 selection:text-accent-foreground;
+    /* Prevent horizontal scroll */
+    overflow-x: hidden;
+    /* Better touch scrolling on iOS */
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Improve tap targets for standalone interactive buttons on mobile */
+  /* We use padding to increase tap area without breaking layout */
+  button:not([data-radix-collection-item]):not([data-state]):not([class*="text-xs"]) {
+    /* Ensure a reasonable touch target size */
+    min-height: 36px;
+  }
+
+  /* Icon-only buttons keep their designed size but have enough padding */
+  [data-slot="button"][data-size="icon"] {
+    min-height: 40px;
+    min-width: 40px;
   }
 }
 
 @layer utilities {
+  /* Scrollbar hiding */
   .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -99,7 +125,25 @@
     display: none;
   }
 
-  .body-lock, 
+  /* Smooth thin scrollbar */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 99px;
+  }
+
+  /* Body lock (modal open) */
+  .body-lock,
   .body-lock body {
     overflow: hidden !important;
     position: fixed !important;
@@ -108,22 +152,109 @@
     overscroll-behavior: none !important;
   }
 
-  /* Mobile optimizations */
-  @media (max-width: 640px) {
-    .h-16 { height: 3.5rem; } /* Slightly shorter header on mobile */
-    .px-4 { padding-left: 1rem; padding-right: 1rem; }
-    .py-6 { padding-top: 1rem; padding-bottom: 1rem; }
-  }
-  
+  /* Glass morphism */
   .glass {
     @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-xl;
   }
-  
+
   .glass-dark {
     @apply bg-black/40 backdrop-blur-md border border-white/10 shadow-2xl;
   }
+
+  /* Smooth page transitions */
+  .page-transition {
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  /* Text overflow safe */
+  .text-overflow-safe {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  /* Prevent word overflow – long words in other languages */
+  .word-break-safe {
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
 }
 
+/* ─── Button micro-animations ─────────────────────────────── */
+@layer components {
+  /* Apply to all Shadcn Button variants */
+  [class*="btn-"], .btn,
+  [data-slot="button"] {
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  }
+
+  [data-slot="button"]:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+
+  [data-slot="button"]:active:not(:disabled) {
+    transform: translateY(0) scale(0.97);
+    box-shadow: none;
+  }
+
+  /* Tab links animation */
+  a[data-active] {
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.10);
+  }
+}
+
+/* ─── Container ───────────────────────────────────────────── */
 .container {
   @apply px-4 sm:px-6 lg:px-8 mx-auto max-w-7xl;
+}
+
+/* ─── Mobile-specific tweaks ─────────────────────────────── */
+@media (max-width: 640px) {
+  /* Slightly tighter header */
+  header {
+    min-height: 4rem;
+  }
+
+  /* Prevent very long single words from causing overflow */
+  h1, h2, h3, h4, h5, h6,
+  p, span, label, td, th {
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* Table overflow */
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Dialog / modal safe area */
+  [role="dialog"] {
+    max-height: 95dvh;
+    overflow-y: auto;
+  }
+}
+
+/* ─── Accessibility: focus ring ──────────────────────────── */
+:focus-visible {
+  outline: 2px solid hsl(var(--accent));
+  outline-offset: 2px;
+}
+
+/* ─── Smooth scroll for anchor navigation ────────────────── */
+* {
+  scroll-behavior: smooth;
 }

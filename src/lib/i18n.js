@@ -76,18 +76,18 @@ const translations = {
 
     // Dashboard
     "dashboard.title": "Mes voyages",
-    "dashboard.subtitle": "\n Planifiez et gérez vos prochains voyages",
+    "dashboard.subtitle": "Planifiez et gérez vos prochains voyages",
     "dashboard.empty": "Aucun voyage pour le moment",
     "dashboard.create": "Créer un voyage",
-    "dashboard.welcome": "Bienvenue sur HomeAway",
+    "dashboard.welcome": "Bienvenue",
     "dashboard.welcomeDesc": "Planifiez et gérez vos prochains voyages",
     "dashboard.locationPlaceholder": "Ex: Barcelone, Espagne",
     "dashboard.searchPlaceholder": "Rechercher un voyage",
     "dashboard.search": "Rechercher",
-    "dasboard.all": "Tous",
-    "dasboard.upcoming": "À venir",
-    "dasboard.ongoing": "En cours",
-    "dasboard.past": "Passés",
+    "dashboard.all": "Tous",
+    "dashboard.upcoming": "À venir",
+    "dashboard.ongoing": "En cours",
+    "dashboard.past": "Passés",
 
     // New Trip
     "newTrip.title": "Nouveau voyage",
@@ -109,7 +109,7 @@ const translations = {
     "newTrip.startDatePlaceholder": "Date de début",
     "newTrip.endDatePlaceholder": "Date de fin",
 
-    //Documents
+    // Documents
     "documents.title": "Documents",
     "documents.subtitle": "Gérez vos documents de voyage",
     "documents.add": "Ajouter un document",
@@ -155,6 +155,8 @@ const translations = {
     "profile.langEn": "English",
     "profile.worldMap": "Carte du monde",
     "profile.worldMapDesc": "Visualisez tous vos voyages sur une carte interactive",
+    "profile.chooseAvatar": "Choisir un avatar",
+    "profile.name": "Nom complet",
 
     // Planning
     "planning.departure": "Départ",
@@ -169,6 +171,7 @@ const translations = {
     "planning.addStep": "Ajouter une étape",
     "planning.import": "Importer",
     "planning.goThere": "Y Aller",
+    "planning.forWho": "Pour qui ? (par défaut : tout le monde)",
 
     // Accommodations
     "accommodations.title": "Logements",
@@ -235,8 +238,13 @@ const translations = {
     "members.pendingInvite": "Invitation en attente",
     "members.inviteSent": "Invitation envoyée à",
     "members.noMembers": "Aucun membre trouvé",
-    "members.noMembers": "Aucun membre trouvé",
     "members.noPending": "Aucune invitation en attente",
+    "members.todoList": "Checklist du voyage",
+    "members.shoppingList": "Liste de courses",
+    "members.todoTab": "To-Do",
+    "members.shoppingTab": "Courses",
+    "members.todoEmpty": "La liste est vide.",
+    "members.addItem": "Ajouter un élément...",
 
     // Auth
     "auth.loginTitle": "🌍 Home Away",
@@ -275,6 +283,9 @@ const translations = {
     "common.creating": "Création...",
     "common.create": "Créer le voyage",
     "common.cancel": "Annuler",
+    "common.delete": "Supprimer",
+    "common.save": "Enregistrer",
+    "common.close": "Fermer",
 
     // Community
     "community.title": "Communauté",
@@ -299,6 +310,39 @@ const translations = {
     "community.viewBookings": "Voir les réservations",
     "community.search": "Rechercher",
     "community.searchPlaceholder": "Rechercher un voyage",
+    "community.likes": "J'aime",
+    "community.filter.all": "Tous",
+    "community.filter.week": "Week-end (1-3j)",
+    "community.filter.short": "Court (< 7j)",
+    "community.filter.medium": "2 Semaines (8-14j)",
+    "community.filter.long": "Long (> 15j)",
+    "community.filter.duration.1-3": "Week-end (1-3j)",
+    "community.filter.duration.4-7": "Semaine (4-7j)",
+    "community.filter.duration.8-14": "2 Semaines (8-14j)",
+    "community.filter.duration.15+": "+ de 15 jours",
+    "community.filter.destination": "Filtrer par destination...",
+
+    // Next event banner
+    "banner.nextEvent": "Prochain événement",
+    "banner.ongoing": "En cours",
+    "banner.imminent": "Imminent",
+    "banner.inHours": "Dans {h}h",
+    "banner.tomorrow": "Demain",
+    "banner.inDays": "Dans {d} jours",
+
+    // Settings
+    "settings.title": "Paramètres du voyage",
+    "settings.subtitle": "Gérez les informations et préférences de votre voyage",
+    "settings.save": "Enregistrer",
+    "settings.danger": "Zone dangereuse",
+    "settings.dangerDesc": "Actions irréversibles sur ce voyage",
+    "settings.delete": "Supprimer le voyage",
+    "settings.deleteConfirm": "Êtes-vous sûr de vouloir supprimer ce voyage ?",
+    "settings.deleteDesc": "Cette action est irréversible. Toutes les données du voyage seront supprimées.",
+    "settings.deleteYes": "Oui, supprimer",
+    "settings.deleteCancel": "Annuler",
+    "settings.share": "Partager le voyage",
+    "settings.coverImage": "Image de couverture",
   },
 
   en: {
@@ -380,11 +424,11 @@ const translations = {
     "dashboard.subtitle": "Plan and manage your upcoming trips",
     "dashboard.empty": "No trips yet",
     "dashboard.create": "Create a trip",
-    "dashboard.welcome": "Welcome to HomeAway",
+    "dashboard.welcome": "Welcome",
     "dashboard.welcomeDesc": "Plan and manage your upcoming trips",
     "dashboard.locationPlaceholder": "Ex: Barcelona, Spain",
-    "dashboard.namePlaceholder": "Nom du voyage",
-    "dashboard.descriptionPlaceholder": "Description du voyage",
+    "dashboard.namePlaceholder": "Trip name",
+    "dashboard.descriptionPlaceholder": "Trip description",
     "dashboard.startDatePlaceholder": "Start date",
     "dashboard.endDatePlaceholder": "End date",
     "dashboard.cancel": "Cancel",
@@ -392,6 +436,8 @@ const translations = {
     "dashboard.upcoming": "Upcoming",
     "dashboard.ongoing": "Ongoing",
     "dashboard.past": "Past",
+    "dashboard.searchPlaceholder": "Search a trip",
+    "dashboard.search": "Search",
 
     // New Trip
     "newTrip.title": "New Trip",
@@ -407,6 +453,8 @@ const translations = {
     "newTrip.creating": "Creating...",
     "newTrip.startDatePlaceholder": "Start date",
     "newTrip.endDatePlaceholder": "End date",
+    "newTrip.create": "Create",
+    "newTrip.cancel": "Cancel",
 
     // Profile
     "profile.title": "My Profile",
@@ -431,6 +479,8 @@ const translations = {
     "profile.langEn": "English",
     "profile.worldMap": "World Map",
     "profile.worldMapDesc": "View all your trips on an interactive map",
+    "profile.chooseAvatar": "Choose an avatar",
+    "profile.name": "Full name",
 
     // Planning
     "planning.departure": "Departure",
@@ -445,6 +495,7 @@ const translations = {
     "planning.addStep": "Add a step",
     "planning.import": "Import",
     "planning.goThere": "Go there",
+    "planning.forWho": "For who? (default: everyone)",
 
     // Accommodations
     "accommodations.title": "Accommodations",
@@ -511,8 +562,13 @@ const translations = {
     "members.pendingInvite": "Pending invitation",
     "members.inviteSent": "Invitation sent to",
     "members.noMembers": "No members found",
-    "members.noMembers": "No members found",
     "members.noPending": "No pending invitations",
+    "members.todoList": "Trip Checklist",
+    "members.shoppingList": "Shopping List",
+    "members.todoTab": "To-Do",
+    "members.shoppingTab": "Shopping",
+    "members.todoEmpty": "The list is empty.",
+    "members.addItem": "Add an item...",
 
     // Auth
     "auth.loginTitle": "🌍 Home Away",
@@ -551,8 +607,11 @@ const translations = {
     "common.creating": "Creating...",
     "common.create": "Create Trip",
     "common.cancel": "Cancel",
+    "common.delete": "Delete",
+    "common.save": "Save",
+    "common.close": "Close",
 
-    //Documents
+    // Documents
     "documents.title": "Documents",
     "documents.subtitle": "Manage your travel documents",
     "documents.add": "Add document",
@@ -596,8 +655,41 @@ const translations = {
     "community.viewPlanning": "View planning",
     "community.viewMap": "View map",
     "community.viewBookings": "View bookings",
-    "commmunity.search": "Search",
-    "commmunity.searchPlaceholder": "Search a trip",
+    "community.search": "Search",
+    "community.searchPlaceholder": "Search a trip",
+    "community.likes": "Likes",
+    "community.filter.all": "All",
+    "community.filter.week": "Weekend (1-3d)",
+    "community.filter.short": "Short (< 7d)",
+    "community.filter.medium": "2 Weeks (8-14d)",
+    "community.filter.long": "Long (> 15d)",
+    "community.filter.duration.1-3": "Weekend (1-3d)",
+    "community.filter.duration.4-7": "Week (4-7d)",
+    "community.filter.duration.8-14": "2 Weeks (8-14d)",
+    "community.filter.duration.15+": "More than 15 days",
+    "community.filter.destination": "Filter by destination...",
+
+    // Next event banner
+    "banner.nextEvent": "Next event",
+    "banner.ongoing": "Ongoing",
+    "banner.imminent": "Imminent",
+    "banner.inHours": "In {h}h",
+    "banner.tomorrow": "Tomorrow",
+    "banner.inDays": "In {d} days",
+
+    // Settings
+    "settings.title": "Trip Settings",
+    "settings.subtitle": "Manage your trip information and preferences",
+    "settings.save": "Save",
+    "settings.danger": "Danger zone",
+    "settings.dangerDesc": "Irreversible actions on this trip",
+    "settings.delete": "Delete trip",
+    "settings.deleteConfirm": "Are you sure you want to delete this trip?",
+    "settings.deleteDesc": "This action is irreversible. All trip data will be deleted.",
+    "settings.deleteYes": "Yes, delete",
+    "settings.deleteCancel": "Cancel",
+    "settings.share": "Share trip",
+    "settings.coverImage": "Cover image",
   },
 };
 

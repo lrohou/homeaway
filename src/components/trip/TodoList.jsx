@@ -6,9 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Trash2, Plus, Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { useTranslation } from '@/lib/LanguageContext';
 
 export default function TodoList({ tripId, title, type = 'general' }) {
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const [newItemText, setNewItemText] = useState("");
 
   const { data: todos = [], isLoading } = useQuery({
@@ -42,44 +44,67 @@ export default function TodoList({ tripId, title, type = 'general' }) {
   };
 
   return (
-    <Card className="border-border shadow-sm w-full">
+    <Card className="border-border shadow-sm w-full overflow-hidden">
       <CardHeader className="bg-muted/30 border-b py-4">
-        <CardTitle className="text-lg flex items-center gap-2">{title}</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2 min-w-0">
+          <span className="truncate">{title}</span>
+        </CardTitle>
       </CardHeader>
       <CardContent className="p-4 space-y-4">
         <form onSubmit={handleAdd} className="flex gap-2">
-          <Input 
-            value={newItemText} 
-            onChange={(e) => setNewItemText(e.target.value)} 
-            placeholder="Ajouter un élément..." 
-            className="flex-1"
+          <Input
+            value={newItemText}
+            onChange={(e) => setNewItemText(e.target.value)}
+            placeholder={t('members.addItem')}
+            className="flex-1 min-w-0"
           />
-          <Button type="submit" size="icon" disabled={!newItemText.trim() || createMutation.isPending}>
+          <Button
+            type="submit"
+            size="icon"
+            className="shrink-0 transition-all duration-200 hover:scale-110 active:scale-95"
+            disabled={!newItemText.trim() || createMutation.isPending}
+          >
             {createMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
           </Button>
         </form>
 
-        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+        <div className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
           {isLoading ? (
-            <div className="py-8 flex justify-center"><Loader2 className="w-6 h-6 animate-spin text-muted-foreground" /></div>
+            <div className="py-8 flex justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
           ) : todos.length === 0 ? (
-            <div className="text-center py-6 text-sm text-muted-foreground">La liste est vide.</div>
+            <div className="text-center py-6 text-sm text-muted-foreground">
+              {t('members.todoEmpty')}
+            </div>
           ) : (
             todos.map(todo => (
-              <div key={todo.id} className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${todo.is_done ? 'bg-secondary/50 border-secondary' : 'bg-card border-border hover:border-primary/30'}`}>
-                <div className="flex items-center gap-3 overflow-hidden flex-1">
-                  <Checkbox 
-                    checked={todo.is_done === 1 || todo.is_done === true}
-                    onCheckedChange={(checked) => updateMutation.mutate({ id: todo.id, is_done: checked ? 1 : 0 })}
-                  />
-                  <span className={`text-sm truncate ${todo.is_done ? 'line-through text-muted-foreground' : 'font-medium'}`}>
-                    {todo.text}
-                  </span>
-                </div>
-                <Button 
-                  variant="ghost" 
-                  size="icon" 
-                  className="h-8 w-8 text-destructive hover:bg-destructive/10 ml-2 shrink-0" 
+              <div
+                key={todo.id}
+                className={`flex items-center gap-2 p-3 rounded-lg border transition-all duration-200 ${
+                  todo.is_done
+                    ? 'bg-secondary/50 border-secondary'
+                    : 'bg-card border-border hover:border-primary/30 hover:shadow-sm'
+                }`}
+              >
+                <Checkbox
+                  checked={todo.is_done === 1 || todo.is_done === true}
+                  onCheckedChange={(checked) =>
+                    updateMutation.mutate({ id: todo.id, is_done: checked ? 1 : 0 })
+                  }
+                  className="shrink-0"
+                />
+                <span
+                  className={`text-sm flex-1 min-w-0 break-words ${
+                    todo.is_done ? 'line-through text-muted-foreground' : 'font-medium'
+                  }`}
+                >
+                  {todo.text}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 text-destructive hover:bg-destructive/10 transition-all duration-200 active:scale-95"
                   onClick={() => deleteMutation.mutate(todo.id)}
                 >
                   <Trash2 className="w-4 h-4" />

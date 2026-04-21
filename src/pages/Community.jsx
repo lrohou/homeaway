@@ -80,19 +80,19 @@ export default function Community() {
 
       {/* Search and Filters */}
       <div className="flex flex-col gap-4 bg-card border border-border p-4 rounded-3xl shadow-sm">
-        <div className="flex gap-2 p-1 bg-secondary/50 rounded-full mb-2 self-start">
+        <div className="flex gap-2 p-1 bg-secondary/50 rounded-full mb-2 self-start flex-wrap">
           <button
             onClick={() => setShowLiked(false)}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-all ${!showLiked ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all ${!showLiked ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            Toutes les recherches
+            {t('community.filter.all')}
           </button>
           <button
             onClick={() => setShowLiked(true)}
-            className={`px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${showLiked ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`px-4 sm:px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2 ${showLiked ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
             <Heart className={`w-4 h-4 ${showLiked ? 'fill-rose-500 text-rose-500' : ''}`} />
-            Mes Favoris
+            {t('community.likes')}
           </button>
         </div>
         <div className="flex flex-col md:flex-row gap-4">
@@ -107,7 +107,7 @@ export default function Community() {
           </div>
           <div className="flex-1">
             <AddressAutocomplete
-              placeholder="Filtrer par destination..."
+              placeholder={t('community.filter.destination')}
               onSelect={loc => setLocation(loc)}
               defaultValue=""
             />
@@ -115,14 +115,14 @@ export default function Community() {
           <div className="w-full md:w-48 shrink-0">
             <Select value={duration} onValueChange={setDuration}>
               <SelectTrigger className="h-11 rounded-xl border-border bg-background">
-                <SelectValue placeholder="Durée" />
+                <SelectValue placeholder={t('community.filter.all')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Toutes durées</SelectItem>
-                <SelectItem value="1-3">Week-end (1-3j)</SelectItem>
-                <SelectItem value="4-7">Semaine (4-7j)</SelectItem>
-                <SelectItem value="8-14">2 Semaines (8-14j)</SelectItem>
-                <SelectItem value="15+">+ de 15 jours</SelectItem>
+                <SelectItem value="all">{t('community.filter.all')}</SelectItem>
+                <SelectItem value="1-3">{t('community.filter.duration.1-3')}</SelectItem>
+                <SelectItem value="4-7">{t('community.filter.duration.4-7')}</SelectItem>
+                <SelectItem value="8-14">{t('community.filter.duration.8-14')}</SelectItem>
+                <SelectItem value="15+">{t('community.filter.duration.15+')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -148,7 +148,7 @@ export default function Community() {
             <Compass className="w-10 h-10 text-muted-foreground" />
           </div>
           <h3 className="font-display text-xl font-semibold mb-2">
-            {search ? "Aucun résultat pour cette recherche" : t('community.empty')}
+            {search ? t('community.empty') : t('community.empty')}
           </h3>
         </div>
       ) : (

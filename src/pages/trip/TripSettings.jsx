@@ -137,9 +137,9 @@ export default function TripSettings() {
       });
       queryClient.invalidateQueries({ queryKey: ["trip", tripId] });
       queryClient.invalidateQueries({ queryKey: ["trips"] });
-      toast({ title: "Voyage mis à jour avec succès" });
+      toast({ title: t('settings.save') });
     } catch (err) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: err.message, variant: "destructive" });
     } finally {
       setSaving(false);
     }
@@ -156,9 +156,9 @@ export default function TripSettings() {
       });
       await refetchShareSettings();
       queryClient.invalidateQueries({ queryKey: ["community-trips"] });
-      toast({ title: t('community.shareBtn'), description: "Votre voyage est maintenant visible dans la communauté !" });
+      toast({ title: t('community.shareBtn') });
     } catch (err) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: err.message, variant: "destructive" });
     } finally {
       setSavingShare(false);
     }
@@ -168,7 +168,7 @@ export default function TripSettings() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
-        toast({ title: "Erreur", description: "L'image est trop volumineuse (max 2MB).", variant: "destructive" });
+        toast({ title: t('common.error'), description: t('common.error') + ': 2MB max', variant: "destructive" });
         return;
       }
       const reader = new FileReader();
@@ -185,9 +185,9 @@ export default function TripSettings() {
       await api.community.unshare(tripId);
       await refetchShareSettings();
       queryClient.invalidateQueries({ queryKey: ["community-trips"] });
-      toast({ title: t('community.unshareBtn'), description: "Votre voyage n'est plus visible dans la communauté." });
+      toast({ title: t('community.unshareBtn') });
     } catch (err) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: err.message, variant: "destructive" });
     } finally {
       setUnsharingTrip(false);
     }
@@ -197,18 +197,18 @@ export default function TripSettings() {
     try {
       await api.trips.delete(tripId);
       queryClient.invalidateQueries({ queryKey: ["trips"] });
-      toast({ title: "Voyage supprimé" });
+      toast({ title: t('settings.delete') });
       navigate("/");
     } catch (err) {
-      toast({ title: "Erreur", description: err.message, variant: "destructive" });
+      toast({ title: t('common.error'), description: err.message, variant: "destructive" });
     }
   };  return (
     <div className="max-w-2xl space-y-10">
-      <h2 className="text-3xl font-bold">Paramètres</h2>
+      <h2 className="text-3xl font-bold">{t('settings.title')}</h2>
 
       <div className="space-y-6">
         <div className="space-y-2">
-          <Label>Titre du voyage</Label>
+          <Label>{t('newTrip.title')}</Label>
           <Input
             value={form.title}
             onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
@@ -217,7 +217,7 @@ export default function TripSettings() {
         </div>
 
         <div className="space-y-2">
-          <Label>Description</Label>
+          <Label>{t('newTrip.description')}</Label>
           <Textarea
             value={form.description}
             onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
@@ -227,7 +227,7 @@ export default function TripSettings() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Date de début</Label>
+            <Label>{t('newTrip.startDatePlaceholder')}</Label>
             <Input
               type="date"
               value={form.start_date}
@@ -236,7 +236,7 @@ export default function TripSettings() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Date de fin</Label>
+            <Label>{t('newTrip.endDate')}</Label>
             <Input
               type="date"
               value={form.end_date}
@@ -248,7 +248,7 @@ export default function TripSettings() {
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label>Budget</Label>
+            <Label>{t('newTrip.budget')}</Label>
             <Input
               type="number"
               value={form.budget}
@@ -257,7 +257,7 @@ export default function TripSettings() {
             />
           </div>
           <div className="space-y-2">
-            <Label>Devise</Label>
+            <Label>{t('expenses.other')}</Label>
             <Input
               value={form.currency}
               onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
@@ -268,21 +268,21 @@ export default function TripSettings() {
 
         {/* Members / Collaboration */}
         <div className="space-y-3 border-t border-border pt-6">
-          <Label className="text-base font-semibold">Membres du voyage</Label>
+          <Label className="text-base font-semibold">{t('members.title')}</Label>
           <p className="text-sm text-muted-foreground">
-            Invitez des amis pour planifier ensemble.
+            {t('members.inviteDesc')}
           </p>
           <div className="flex gap-2">
             <Input
-              placeholder="Email du membre"
+              placeholder={t('members.emailLabel')}
               value={memberInput}
               onChange={e => setMemberInput(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), addMember())}
               className="h-11"
             />
-            <Button type="button" variant="outline" onClick={addMember} className="shrink-0 h-11 gap-1.5">
+            <Button type="button" variant="outline" onClick={addMember} className="shrink-0 h-11 gap-1.5 transition-all hover:scale-105 active:scale-95">
               <UserPlus className="w-4 h-4" />
-              Inviter
+              {t('members.invite')}
             </Button>
           </div>
           {form.members.length > 0 && (
@@ -302,27 +302,27 @@ export default function TripSettings() {
         <div className="flex gap-3 pt-4">
           <Button onClick={handleSave} disabled={saving} className="bg-accent text-accent-foreground hover:bg-accent/90 gap-1.5">
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Enregistrer
+            {t('settings.save')}
           </Button>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/5 gap-1.5">
+              <Button variant="outline" className="text-destructive border-destructive/30 hover:bg-destructive/5 gap-1.5 transition-all hover:scale-105 active:scale-95">
                 <Trash2 className="w-4 h-4" />
-                Supprimer le voyage
+                {t('settings.delete')}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Supprimer ce voyage ?</AlertDialogTitle>
+                <AlertDialogTitle>{t('settings.deleteConfirm')}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Cette action est irréversible. Toutes les étapes, documents et dépenses seront supprimés.
+                  {t('settings.deleteDesc')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Annuler</AlertDialogCancel>
+                <AlertDialogCancel>{t('settings.deleteCancel')}</AlertDialogCancel>
                 <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-                  Supprimer
+                  {t('settings.deleteYes')}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
