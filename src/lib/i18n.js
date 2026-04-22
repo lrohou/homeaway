@@ -154,7 +154,7 @@ const translations = {
     "profile.langFr": "Français",
     "profile.langEn": "English",
     "profile.worldMap": "Carte du monde",
-    "profile.worldMapDesc": "Tous vos voyages sur une seule carte"
+    "profile.worldMapDesc": "Tous vos voyages sur une seule carte",
     "profile.chooseAvatar": "Choisir un avatar",
     "profile.name": "Nom complet",
 
@@ -343,7 +343,7 @@ const translations = {
     "settings.deleteCancel": "Annuler",
     "settings.share": "Partager le voyage",
     "settings.coverImage": "Image de couverture",
-    "settings.devise": "Devise",
+    "settings.currency": "Devise",
   },
 
   en: {
@@ -691,7 +691,7 @@ const translations = {
     "settings.deleteCancel": "Cancel",
     "settings.share": "Share trip",
     "settings.coverImage": "Cover image",
-    "settings.devise": "Currency",
+    "settings.currency": "Currency",
   },
 };
 
