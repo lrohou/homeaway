@@ -10,6 +10,7 @@ import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/LanguageContext";
+import { Button } from "@/components/ui/button";
 
 function computeStatus(trip) {
   const today = new Date().toISOString().split("T")[0];
