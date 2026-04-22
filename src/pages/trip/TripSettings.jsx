@@ -167,7 +167,7 @@ export default function TripSettings() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
+      if (file.size > 10 * 1024 * 1024) {
         toast({ title: t('common.error'), description: t('common.error') + ': 2MB max', variant: "destructive" });
         return;
       }

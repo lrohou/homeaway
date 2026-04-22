@@ -82,8 +82,8 @@ export default function NewTrip() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 2 * 1024 * 1024) {
-        setError("L'image est trop volumineuse (max 2MB).");
+      if (file.size > 5 * 1024 * 1024) {
+        setError("L'image est trop volumineuse (max 5MB).");
         return;
       }
       const reader = new FileReader();
@@ -258,7 +258,7 @@ export default function NewTrip() {
           </div>
           {form.cover_image && (
             <div className="mt-4 rounded-xl overflow-hidden h-40 bg-secondary border border-border">
-              <img src={form.cover_image} alt="Preview" className="w-full h-full object-cover" onError={e => e.target.style.display='none'} />
+              <img src={form.cover_image} alt="Preview" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
             </div>
           )}
         </div>

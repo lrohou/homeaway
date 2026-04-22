@@ -44,3 +44,7 @@ Thumbs.db
 *.sln
 *.sw?
 .vite
+
+
+.py
+.sql
