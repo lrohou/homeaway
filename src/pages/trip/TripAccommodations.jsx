@@ -280,8 +280,12 @@ export default function TripAccommodations() {
               
               <div className="flex items-center justify-between pt-2 border-t border-slate-50">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('accommodations.price')}</span>
-                  <span className="text-xl font-display font-bold text-slate-900">{acc.price} {acc.currency}</span>
+                  {acc.price > 0 && (
+                    <>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('accommodations.price')}</span>
+                      <span className="text-xl font-display font-bold text-slate-900">{acc.price} {acc.currency}</span>
+                    </>
+                  )}
                 </div>
                 {acc.bookingReference && (
                   <div className="text-right">

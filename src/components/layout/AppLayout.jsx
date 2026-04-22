@@ -1,4 +1,4 @@
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import { Plus, User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/lib/AuthContext";
 import { useTranslation } from "@/lib/LanguageContext";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 // Avatar images from public folder
@@ -31,8 +31,36 @@ function getRandomAvatar(userId) {
 
 export default function AppLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const { user, logout } = useAuth();
+  
+  const touchStart = useRef(null);
+  const touchEnd = useRef(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e) => {
+    touchEnd.current = null;
+    touchStart.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e) => {
+    touchEnd.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    
+    // Swipe left (distance > minSwipeDistance) -> go to Community
+    if (distance > minSwipeDistance && location.pathname === "/") {
+      navigate("/community");
+    }
+    // Swipe right (distance < -minSwipeDistance) -> go to My trips
+    if (distance < -minSwipeDistance && location.pathname.startsWith("/community")) {
+      navigate("/");
+    }
+  };
 
   const initials = user?.name
     ? user.name.split(" ").map((n) => n[0]).join("").toUpperCase()
@@ -48,7 +76,7 @@ export default function AppLayout() {
   const isCommunity = location.pathname.startsWith("/community");
 
   return (
-    <div className="min-h-screen bg-background font-sans">
+    <div className="min-h-screen bg-background font-sans" onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
       {/* Top Nav */}
       <header className="sticky top-0 z-50 border-b border-border bg-card/90 backdrop-blur-xl shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -94,7 +122,7 @@ export default function AppLayout() {
                   <span
                     className={cn(
                       "text-sm font-semibold whitespace-nowrap transition-colors duration-200",
-                      isDashboard ? "text-accent" : "text-foreground/70 group-hover:text-foreground"
+                      isDashboard ? "text-accent hidden sm:inline-block" : "text-foreground/70 group-hover:text-foreground inline-block"
                     )}
                   >
                     {t('dashboard.title')}
@@ -128,7 +156,7 @@ export default function AppLayout() {
                   <span
                     className={cn(
                       "text-sm font-semibold whitespace-nowrap transition-colors duration-200",
-                      isCommunity ? "text-accent" : "text-foreground/70 group-hover:text-foreground"
+                      isCommunity ? "text-accent hidden sm:inline-block" : "text-foreground/70 group-hover:text-foreground inline-block"
                     )}
                   >
                     {t('community.title')}
@@ -172,23 +200,7 @@ export default function AppLayout() {
             </div>
           </div>
 
-          {/* Second row: New trip button — only on non-trip pages */}
-          {!location.pathname.startsWith("/trip/") && (
-            <div className="flex items-center justify-center pb-3 sm:pb-4">
-              <Link to="/new-trip">
-                <Button
-                  size="sm"
-                  className={cn(
-                    "gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-5 shadow-md",
-                    "transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95"
-                  )}
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>{t('app.newTrip')}</span>
-                </Button>
-              </Link>
-            </div>
-          )}
+
         </div>
       </header>
 

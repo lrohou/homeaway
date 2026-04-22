@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Plus, Calendar, Clock, MapPin, Trash2, DollarSign } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import AddressAutocomplete from '@/components/ui/AddressAutocomplete';
 import { useAuth } from '@/lib/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -247,41 +248,59 @@ export default function TripActivities() {
         </Dialog>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {activities.map((activity) => (
-          <Card key={activity.id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {activities.map((act) => (
+          <Card key={act.id} className="group overflow-hidden border-none shadow-md hover:shadow-xl transition-all duration-300 rounded-3xl bg-white/70 backdrop-blur-sm">
+            <div className="h-3 bg-gradient-to-r from-orange-400 to-amber-500" />
+            <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
-                <CardTitle className="text-lg">{activity.name}</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteMutation.mutate(activity.id)}
-                >
-                  <Trash2 className="w-4 h-4 text-red-500" />
-                </Button>
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="bg-orange-50 text-orange-700 border-orange-100 uppercase text-[10px] tracking-wider">
+                      {t('cat.activity')}
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-xl font-display font-bold leading-tight">{act.name}</CardTitle>
+                  <CardDescription className="flex items-center gap-1.5 text-slate-500">
+                    <MapPin className="w-3.5 h-3.5" />
+                    <span className="truncate max-w-[200px]">{act.location || t('activities.locationPlaceholder')}</span>
+                  </CardDescription>
+                </div>
+                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 rounded-full hover:bg-rose-50 hover:text-rose-500"
+                    onClick={() => deleteMutation.mutate(act.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <Calendar className="w-4 h-4 text-blue-500" />
-                <span>{format(parseISO(activity.date), "d MMM yyyy", { locale: dateLocale })}</span>
+            <CardContent className="space-y-4 pb-6">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{t('activities.date')}</p>
+                  <p className="text-sm font-semibold">{act.date ? format(parseISO(act.date), "d MMM yyyy", { locale: dateLocale }) : '—'}</p>
+                </div>
+                <div className="p-3 bg-slate-50/50 rounded-2xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter mb-1">{t('activities.time')}</p>
+                  <p className="text-sm font-semibold">{act.time || '—'} {act.duration ? `(${act.duration}m)` : ''}</p>
+                </div>
               </div>
-              {activity.time && (
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="w-4 h-4 text-blue-500" />
-                  <span>{activity.time} {activity.duration && `(${activity.duration} min)`}</span>
+              
+              <div className="flex items-center justify-between pt-2 border-t border-slate-50">
+                <div className="flex flex-col">
+                  {act.price > 0 && (
+                    <>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('activities.price')}</span>
+                      <span className="text-xl font-display font-bold text-slate-900">{act.price} {act.currency}</span>
+                    </>
+                  )}
                 </div>
-              )}
-              {activity.description && (
-                <p className="text-sm text-gray-600">{activity.description}</p>
-              )}
-              {activity.price > 0 && (
-                <div className="flex items-center gap-2 text-sm font-semibold">
-                  <DollarSign className="w-4 h-4" />
-                  <span>{activity.price} {activity.currency}</span>
-                </div>
-              )}
+              </div>
+              
             </CardContent>
           </Card>
         ))}

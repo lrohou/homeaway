@@ -322,8 +322,12 @@ export default function TripTransports() {
               
               <div className="flex items-center justify-between pt-4 border-t border-slate-100">
                 <div className="flex flex-col">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('transports.price')}</span>
-                  <span className="text-xl font-display font-bold text-slate-900">{transport.price} {transport.currency}</span>
+                  {transport.price > 0 && (
+                    <>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">{t('transports.price')}</span>
+                      <span className="text-xl font-display font-bold text-slate-900">{transport.price} {transport.currency}</span>
+                    </>
+                  )}
                 </div>
                 {transport.bookingReference && (
                   <div className="text-right">

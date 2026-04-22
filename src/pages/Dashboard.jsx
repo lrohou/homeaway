@@ -5,7 +5,8 @@ import { useAuth } from "@/lib/AuthContext";
 import TripCard from "@/components/dashboard/TripCard";
 import NextEventBanner from "@/components/dashboard/NextEventBanner";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plane, Compass, Clock } from "lucide-react";
+import { Plane, Compass, Clock, Plus } from "lucide-react";
+import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/LanguageContext";
@@ -119,15 +120,25 @@ export default function Dashboard() {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="space-y-1"
+        className="flex mb-8 flex-col sm:flex-row sm:items-end justify-between gap-4"
       >
-        <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
-          {t('dashboard.title')}
-        </h1>
-        <p className="text-muted-foreground">
-          {t('dashboard.welcome')} {user?.name ? `, ${user.name.split(" ")[0]}` : ""}.
-          {t('dashboard.subtitle')}
-        </p>
+        <div className="space-y-1">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-foreground">
+            {t('dashboard.title')}
+          </h1>
+          <p className="text-muted-foreground">
+            {t('dashboard.welcome')} {user?.name ? ` ${user.name.split(" ")[0]}` : ""}.
+            {t('dashboard.subtitle')}
+          </p>
+        </div>
+        <Link to="/new-trip" className="w-full sm:w-auto">
+          <Button
+            className="w-full sm:w-auto gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full px-5 h-11 sm:h-10 shadow-md transition-all duration-200 hover:shadow-lg hover:scale-105 active:scale-95"
+          >
+            <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
+            <span>{t('app.newTrip')}</span>
+          </Button>
+        </Link>
       </motion.div>
 
       {/* Next Event Banner */}

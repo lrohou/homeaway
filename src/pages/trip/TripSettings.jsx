@@ -202,7 +202,8 @@ export default function TripSettings() {
     } catch (err) {
       toast({ title: t('common.error'), description: err.message, variant: "destructive" });
     }
-  };  return (
+  };
+  return (
     <div className="max-w-2xl space-y-10">
       <h2 className="text-3xl font-bold">{t('settings.title')}</h2>
 
@@ -257,7 +258,7 @@ export default function TripSettings() {
             />
           </div>
           <div className="space-y-2">
-            <Label>{t('expenses.other')}</Label>
+            <Label>{t('settings.currency')}</Label>
             <Input
               value={form.currency}
               onChange={e => setForm(f => ({ ...f, currency: e.target.value }))}
@@ -419,7 +420,7 @@ export default function TripSettings() {
             </div>
             {shareForm.cover_image && (
               <div className="mt-4 rounded-xl overflow-hidden h-40 bg-secondary border border-border">
-                <img src={shareForm.cover_image} alt="Preview" className="w-full h-full object-cover" onError={e => e.target.style.display='none'} />
+                <img src={shareForm.cover_image} alt="Preview" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
               </div>
             )}
           </div>
@@ -462,4 +463,4 @@ export default function TripSettings() {
       )}
     </div>
   );
-}
+}

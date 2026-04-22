@@ -265,9 +265,8 @@ export default function TripExpenses() {
         <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
           {tripMembers.length > 1 && (
             <Button
-              variant="outline"
               size="sm"
-              className="gap-1.5 border-blue-200 text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-full w-full sm:w-auto h-11 sm:h-9"
+              className="gap-2 bg-blue-500 text-white hover:bg-blue-600 rounded-full w-full sm:w-auto h-11 sm:h-9 shadow-md border-none"
               onClick={() => setShowBalance(true)}
             >
               <Scale className="w-5 h-5 sm:w-4 sm:h-4" />

@@ -80,7 +80,7 @@ const translations = {
     "dashboard.empty": "Aucun voyage pour le moment",
     "dashboard.create": "Créer un voyage",
     "dashboard.welcome": "Bienvenue",
-    "dashboard.welcomeDesc": "Planifiez et gérez vos prochains voyages",
+    "dashboard.welcomeDesc": " Planifiez et gérez vos prochains voyages",
     "dashboard.locationPlaceholder": "Ex: Barcelone, Espagne",
     "dashboard.searchPlaceholder": "Rechercher un voyage",
     "dashboard.search": "Rechercher",
@@ -100,7 +100,7 @@ const translations = {
     "newTrip.location": "Lieu/Destination",
     "newTrip.latitude": "Latitude (optionnel)",
     "newTrip.longitude": "Longitude (optionnel)",
-    "newTrip.budget": "Budget global (€, optionnel)",
+    "newTrip.budget": "Budget global",
     "newTrip.create": "Créer",
     "newTrip.cancel": "Annuler",
     "newTrip.empty": "Aucun voyage pour le moment",
@@ -154,7 +154,7 @@ const translations = {
     "profile.langFr": "Français",
     "profile.langEn": "English",
     "profile.worldMap": "Carte du monde",
-    "profile.worldMapDesc": "Visualisez tous vos voyages sur une carte interactive",
+    "profile.worldMapDesc": "Tous vos voyages sur une seule carte"
     "profile.chooseAvatar": "Choisir un avatar",
     "profile.name": "Nom complet",
 
@@ -222,7 +222,7 @@ const translations = {
     "activities.empty": "Aucune activité pour le moment",
 
     // Members
-    "members.title": "Membres du voyage",
+    "members.title": "Membres",
     "members.subtitle": "Gérez les participants et les invitations",
     "members.invite": "Inviter",
     "members.inviteTitle": "Inviter un membre",
@@ -343,6 +343,7 @@ const translations = {
     "settings.deleteCancel": "Annuler",
     "settings.share": "Partager le voyage",
     "settings.coverImage": "Image de couverture",
+    "settings.devise": "Devise",
   },
 
   en: {
@@ -421,7 +422,7 @@ const translations = {
 
     // Dashboard
     "dashboard.title": "My trips",
-    "dashboard.subtitle": "Plan and manage your upcoming trips",
+    "dashboard.subtitle": " Plan and manage your upcoming trips",
     "dashboard.empty": "No trips yet",
     "dashboard.create": "Create a trip",
     "dashboard.welcome": "Welcome",
@@ -478,7 +479,7 @@ const translations = {
     "profile.langFr": "Français",
     "profile.langEn": "English",
     "profile.worldMap": "World Map",
-    "profile.worldMapDesc": "View all your trips on an interactive map",
+    "profile.worldMapDesc": "All your trips on one map",
     "profile.chooseAvatar": "Choose an avatar",
     "profile.name": "Full name",
 
@@ -690,6 +691,7 @@ const translations = {
     "settings.deleteCancel": "Cancel",
     "settings.share": "Share trip",
     "settings.coverImage": "Cover image",
+    "settings.devise": "Currency",
   },
 };
 
