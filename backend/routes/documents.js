@@ -6,6 +6,8 @@ import { upload } from '../middleware/upload.js';
 
 const router = express.Router({ mergeParams: true });
 
+import { uploadToSupabase } from '../utils/supabaseStorage.js';
+
 // Get all documents for a trip
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -35,7 +37,7 @@ router.post('/', authenticateToken, upload.single('file'), async (req, res) => {
       return res.status(400).json({ error: 'Title is required' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = await uploadToSupabase(req.file, 'documents');
 
     const result = await run(
       `INSERT INTO trip_documents (trip_id, title, type, file_url, created_date)

@@ -5,6 +5,8 @@ import { upload } from '../middleware/upload.js';
 
 const router = express.Router({ mergeParams: true });
 
+import { uploadToSupabase } from '../utils/supabaseStorage.js';
+
 // Get all photos for a trip
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -34,7 +36,7 @@ router.post('/', authenticateToken, upload.single('photo'), async (req, res) => 
       return res.status(400).json({ error: 'Photo file is required' });
     }
 
-    const fileUrl = `/uploads/${req.file.filename}`;
+    const fileUrl = await uploadToSupabase(req.file, 'photos');
 
     const result = await run(
       `INSERT INTO trip_photos (trip_id, file_url, caption, uploaded_by) VALUES (?, ?, ?, ?)`,

@@ -5,6 +5,8 @@ import { upload } from '../middleware/upload.js';
 
 const router = express.Router({ mergeParams: true });
 
+import { uploadToSupabase } from '../utils/supabaseStorage.js';
+
 // Get all messages for a trip
 router.get('/', authenticateToken, async (req, res) => {
   try {
@@ -25,7 +27,10 @@ router.post('/', authenticateToken, upload.single('image'), async (req, res) => 
   try {
     const { tripId } = req.params;
     const { text } = req.body;
-    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+    let imageUrl = null;
+    if (req.file) {
+      imageUrl = await uploadToSupabase(req.file, 'messages');
+    }
 
     if (!text && !imageUrl) {
       return res.status(400).json({ error: 'Text or image is required' });
