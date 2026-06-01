@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/api/apiClient';
 import { useAuth } from '@/lib/AuthContext';
@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Loader2, Upload, Trash2, Download, Image as ImageIcon, X, Expand } from 'lucide-react';
+import { Loader2, Upload, Trash2, Download, Image as ImageIcon, X, Expand, Archive, FileArchive, Images, ChevronDown, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from '@/lib/LanguageContext';
+import { downloadAllPhotos, downloadZipStandard, downloadZipInteractive } from '@/utils/albumDownloader';
 
 const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
@@ -23,6 +24,13 @@ export default function PhotoGallery({ tripId }) {
   const [saving, setSaving] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(null);
   const fileInputRef = useRef(null);
+
+  // ─── Download State ────────────────────────────────────────────
+  const [showDownloadMenu, setShowDownloadMenu] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState({ current: 0, total: 0, message: '' });
+  const [downloadResult, setDownloadResult] = useState(null); // { success, failed, error }
+  const downloadMenuRef = useRef(null);
 
   const { data: photos = [], isLoading } = useQuery({
     queryKey: ['photos', tripId],
@@ -80,10 +88,67 @@ export default function PhotoGallery({ tripId }) {
       window.URL.revokeObjectURL(blobUrl);
     } catch (error) {
       console.error('Download failed', error);
-      // Fallback
       window.open(url, '_blank');
     }
   };
+
+  // ─── Album Download Handlers ───────────────────────────────────
+
+  const onProgress = useCallback((current, total, message) => {
+    setDownloadProgress({ current, total, message });
+  }, []);
+
+  const handleAlbumDownload = async (type) => {
+    setShowDownloadMenu(false);
+    setDownloading(true);
+    setDownloadResult(null);
+    setDownloadProgress({ current: 0, total: photos.length, message: 'Préparation...' });
+
+    try {
+      let result;
+      const albumName = `HomeAway-Album-${tripId}`;
+
+      switch (type) {
+        case 'zip':
+          result = await downloadZipStandard(photos, BACKEND_URL, albumName, onProgress);
+          break;
+        case 'html':
+          result = await downloadZipInteractive(photos, BACKEND_URL, albumName, onProgress);
+          break;
+        case 'all':
+          result = await downloadAllPhotos(photos, BACKEND_URL, onProgress);
+          break;
+        default:
+          throw new Error('Type de téléchargement inconnu');
+      }
+
+      setDownloadResult(result);
+    } catch (err) {
+      console.error('Album download failed:', err);
+      setDownloadResult({ success: 0, failed: 0, error: err.message || 'Le téléchargement a échoué. Veuillez réessayer.' });
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  // Fermer le menu de téléchargement quand on clique ailleurs
+  React.useEffect(() => {
+    if (!showDownloadMenu) return;
+    const handler = (e) => {
+      if (downloadMenuRef.current && !downloadMenuRef.current.contains(e.target)) {
+        setShowDownloadMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showDownloadMenu]);
+
+  // Fermer le résultat automatiquement après 6 secondes
+  React.useEffect(() => {
+    if (!downloadResult) return;
+    const timer = setTimeout(() => setDownloadResult(null), 6000);
+    return () => clearTimeout(timer);
+  }, [downloadResult]);
 
   const nextPhoto = (e) => {
     e?.stopPropagation();
@@ -103,6 +168,10 @@ export default function PhotoGallery({ tripId }) {
     return <div className="p-12 text-center"><Loader2 className="w-8 h-8 animate-spin mx-auto text-muted-foreground" /></div>;
   }
 
+  const progressPercent = downloadProgress.total > 0 
+    ? Math.round((downloadProgress.current / downloadProgress.total) * 100) 
+    : 0;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -111,15 +180,171 @@ export default function PhotoGallery({ tripId }) {
           <p className="text-muted-foreground mt-1">{t('photos.subtitle') || 'Partagez vos souvenirs de voyage'}</p>
         </div>
         
-        <Button 
-          className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md"
-          onClick={() => setShowAdd(true)}
-        >
-          <Upload className="w-4 h-4" />
-          {t('photos.upload') || 'Ajouter des photos'}
-        </Button>
+        <div className="flex gap-2 flex-wrap">
+          {/* ─── Download Album Button ─── */}
+          <div className="relative" ref={downloadMenuRef}>
+            <Button
+              variant="outline"
+              className={`gap-2 shadow-sm transition-all duration-200 ${photos.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:border-primary/40'}`}
+              disabled={photos.length === 0 || downloading}
+              onClick={() => setShowDownloadMenu((prev) => !prev)}
+              title={photos.length === 0 ? 'Aucune photo dans l\'album' : 'Télécharger l\'album'}
+            >
+              {downloading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">Télécharger l'album</span>
+              <ChevronDown className="w-3.5 h-3.5 ml-1" />
+            </Button>
+
+            {/* ─── Dropdown Menu ─── */}
+            <AnimatePresence>
+              {showDownloadMenu && (
+                <motion.div
+                  initial={{ opacity: 0, y: -8, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.95 }}
+                  transition={{ duration: 0.15 }}
+                  className="absolute right-0 top-full mt-2 w-80 bg-card border border-border rounded-xl shadow-xl z-50 overflow-hidden"
+                >
+                  <div className="p-3 border-b border-border bg-muted/30">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                      {photos.length} photo{photos.length > 1 ? 's' : ''} dans l'album
+                    </p>
+                  </div>
+
+                  <div className="p-1.5">
+                    {/* Option 1: ZIP Standard */}
+                    <button
+                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors text-left group"
+                      onClick={() => handleAlbumDownload('zip')}
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors">
+                        <Archive className="w-5 h-5 text-blue-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Archive ZIP</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Fichier ZIP avec toutes les photos compressées</p>
+                      </div>
+                    </button>
+
+                    {/* Option 2: Album HTML Interactif */}
+                    <button
+                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors text-left group"
+                      onClick={() => handleAlbumDownload('html')}
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:bg-purple-500/20 transition-colors">
+                        <FileArchive className="w-5 h-5 text-purple-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Album Web Interactif</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">ZIP + galerie HTML avec slider tactile et mode sombre</p>
+                      </div>
+                    </button>
+
+                    {/* Option 3: Tout télécharger */}
+                    <button
+                      className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors text-left group"
+                      onClick={() => handleAlbumDownload('all')}
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors">
+                        <Images className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">Tout télécharger</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">Télécharge chaque image individuellement sur votre appareil</p>
+                      </div>
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* ─── Upload Button ─── */}
+          <Button 
+            className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 shadow-md"
+            onClick={() => setShowAdd(true)}
+          >
+            <Upload className="w-4 h-4" />
+            {t('photos.upload') || 'Ajouter des photos'}
+          </Button>
+        </div>
       </div>
 
+      {/* ─── Progress Bar (Downloading) ─── */}
+      <AnimatePresence>
+        {downloading && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="bg-card border border-border rounded-xl p-4 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span className="text-sm font-medium">{downloadProgress.message}</span>
+                </div>
+                <span className="text-xs text-muted-foreground font-mono">{progressPercent}%</span>
+              </div>
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <motion.div
+                  className="h-full bg-gradient-to-r from-primary to-accent rounded-full"
+                  initial={{ width: '0%' }}
+                  animate={{ width: `${progressPercent}%` }}
+                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Download Result Toast ─── */}
+      <AnimatePresence>
+        {downloadResult && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className={`flex items-center gap-3 p-4 rounded-xl border ${
+              downloadResult.error 
+                ? 'bg-destructive/10 border-destructive/30 text-destructive' 
+                : downloadResult.failed > 0 
+                  ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-700 dark:text-yellow-400' 
+                  : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+            }`}
+          >
+            {downloadResult.error ? (
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+            ) : downloadResult.failed > 0 ? (
+              <AlertTriangle className="w-5 h-5 shrink-0" />
+            ) : (
+              <CheckCircle2 className="w-5 h-5 shrink-0" />
+            )}
+            <p className="text-sm font-medium">
+              {downloadResult.error 
+                ? downloadResult.error
+                : downloadResult.failed > 0
+                  ? `Album généré ! ${downloadResult.success} photo${downloadResult.success > 1 ? 's' : ''} incluse${downloadResult.success > 1 ? 's' : ''}, ${downloadResult.failed} image${downloadResult.failed > 1 ? 's' : ''} n'ont pas pu être incluse${downloadResult.failed > 1 ? 's' : ''}.`
+                  : `Album téléchargé avec succès ! ${downloadResult.success} photo${downloadResult.success > 1 ? 's' : ''}.`
+              }
+            </p>
+            <button 
+              className="ml-auto shrink-0 opacity-60 hover:opacity-100 transition-opacity"
+              onClick={() => setDownloadResult(null)}
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Photo Grid ─── */}
       {photos.length === 0 ? (
         <div className="text-center py-16 bg-card rounded-xl border border-border border-dashed">
           <ImageIcon className="w-12 h-12 mx-auto text-muted-foreground/30 mb-3" />
