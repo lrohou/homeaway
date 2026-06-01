@@ -135,7 +135,7 @@ export default function TripDocuments() {
                     <Icon className="w-5 h-5" />
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <a href={`${BACKEND_URL}${doc.file_url}`} target="_blank" rel="noopener noreferrer">
+                    <a href={doc.file_url.startsWith('http') ? doc.file_url : `${BACKEND_URL}${doc.file_url}`} target="_blank" rel="noopener noreferrer">
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <ExternalLink className="w-3.5 h-3.5" />
                       </Button>

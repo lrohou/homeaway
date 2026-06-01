@@ -139,7 +139,7 @@ export default function PhotoGallery({ tripId }) {
               onClick={() => setLightboxIndex(i)}
             >
               <img 
-                src={`${BACKEND_URL}${photo.file_url}`} 
+                src={photo.file_url.startsWith('http') ? photo.file_url : `${BACKEND_URL}${photo.file_url}`}
                 alt={photo.caption || 'Photo'} 
                 className="w-full h-auto object-cover transition-transform duration-300 group-hover:scale-105"
                 loading="lazy"
@@ -152,7 +152,7 @@ export default function PhotoGallery({ tripId }) {
                     className="w-8 h-8 rounded-full bg-white/20 text-white hover:bg-white/40 backdrop-blur-sm"
                     onClick={(e) => {
                       e.stopPropagation();
-                      handleDownload(`${BACKEND_URL}${photo.file_url}`, `photo-${photo.id}.jpg`);
+                      handleDownload(photo.file_url.startsWith('http') ? photo.file_url : `${BACKEND_URL}${photo.file_url}`, `photo-${photo.id}.jpg`);
                     }}
                   >
                     <Download className="w-4 h-4" />
@@ -263,7 +263,7 @@ export default function PhotoGallery({ tripId }) {
                   className="text-white hover:bg-white/20"
                   onClick={(e) => {
                     e.stopPropagation();
-                    handleDownload(`${BACKEND_URL}${photos[lightboxIndex].file_url}`, `photo-${photos[lightboxIndex].id}.jpg`);
+                    handleDownload(photos[lightboxIndex].file_url.startsWith('http') ? photos[lightboxIndex].file_url : `${BACKEND_URL}${photos[lightboxIndex].file_url}`, `photo-${photos[lightboxIndex].id}.jpg`);
                   }}
                 >
                   <Download className="w-5 h-5" />
@@ -280,7 +280,7 @@ export default function PhotoGallery({ tripId }) {
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                src={`${BACKEND_URL}${photos[lightboxIndex].file_url}`} 
+                src={photos[lightboxIndex].file_url.startsWith('http') ? photos[lightboxIndex].file_url : `${BACKEND_URL}${photos[lightboxIndex].file_url}`}
                 alt="Enlarged view" 
                 className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
               />

@@ -297,10 +297,10 @@ export default function TripChat() {
                     {msg.image_url && (
                       <div className="relative group/img -mx-2 -mt-1 mb-1">
                         <img 
-                          src={`${BACKEND_URL}${msg.image_url}`} 
+                          src={msg.image_url.startsWith('http') ? msg.image_url : `${BACKEND_URL}${msg.image_url}`}
                           alt="Attachment" 
                           className="max-w-[200px] sm:max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
-                          onClick={() => setLightboxImage(`${BACKEND_URL}${msg.image_url}`)}
+                          onClick={() => setLightboxImage(msg.image_url.startsWith('http') ? msg.image_url : `${BACKEND_URL}${msg.image_url}`)}
                           loading="lazy"
                         />
                         <Button 
@@ -309,7 +309,7 @@ export default function TripChat() {
                           className="absolute bottom-2 right-2 w-8 h-8 opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/50 text-white hover:bg-black/70"
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDownload(`${BACKEND_URL}${msg.image_url}`, `chat-img-${msg.id}.jpg`);
+                            handleDownload(msg.image_url.startsWith('http') ? msg.image_url : `${BACKEND_URL}${msg.image_url}`, `chat-img-${msg.id}.jpg`);
                           }}
                         >
                           <Download className="w-4 h-4" />
