@@ -18,6 +18,7 @@ import participantsRoutes from './routes/participants.js';
 import pollsRoutes from './routes/polls.js';
 import photosRoutes from './routes/photos.js';
 import { initMailer } from './config/mailConfig.js';
+import rateLimit from 'express-rate-limit';
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -53,8 +54,17 @@ app.use('/uploads', express.static('uploads'));
 // Initialize Database
 initDb();
 
+// Rate Limiter for Auth Routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Limit each IP to 20 requests per `window` (here, per 15 minutes)
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+  message: { error: 'Trop de requêtes effectuées depuis cette IP, veuillez réessayer après 15 minutes.' }
+});
+
 // Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/community', communityRoutes);
 

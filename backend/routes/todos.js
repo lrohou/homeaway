@@ -44,9 +44,16 @@ router.patch('/:itemId', authenticateToken, async (req, res) => {
     const { is_done, text, assigned_to } = req.body;
     const existing = await query('SELECT * FROM todo_items WHERE id = ?', [itemId]);
     if (!existing.length) return res.status(404).json({ error: 'Not found' });
+    
+    // Explicitly handle boolean casting for PostgreSQL compatibility
+    let isDoneVal = existing[0].is_done;
+    if (is_done !== undefined) {
+      isDoneVal = is_done === true || is_done === 'true' || is_done === 1;
+    }
+
     const updated = {
       text: text !== undefined ? text : existing[0].text,
-      is_done: is_done !== undefined ? is_done : existing[0].is_done,
+      is_done: isDoneVal,
       assigned_to: assigned_to !== undefined ? assigned_to : existing[0].assigned_to,
     };
     await run(
@@ -56,6 +63,7 @@ router.patch('/:itemId', authenticateToken, async (req, res) => {
     const items = await query('SELECT * FROM todo_items WHERE id = ?', [itemId]);
     res.json(items[0]);
   } catch (error) {
+    console.error('Failed to update todo:', error);
     res.status(500).json({ error: 'Failed to update todo' });
   }
 });

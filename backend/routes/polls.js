@@ -8,36 +8,47 @@ const router = express.Router({ mergeParams: true });
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
-    const polls = await query('SELECT * FROM polls WHERE trip_id = ? ORDER BY created_at DESC', [tripId]);
+    
+    // Instead of N+1, fetch everything in 3 bulk queries and merge in memory
+    const polls = await query(
+      `SELECT p.*, u.name as creator_name 
+       FROM polls p 
+       LEFT JOIN users u ON u.id = p.created_by 
+       WHERE p.trip_id = ? 
+       ORDER BY p.created_at DESC`, 
+      [tripId]
+    );
 
-    // For each poll, fetch options and votes
-    const enriched = await Promise.all(polls.map(async (poll) => {
-      const options = await query('SELECT * FROM poll_options WHERE poll_id = ? ORDER BY id ASC', [poll.id]);
-      const votes = await query(
-        `SELECT pv.*, u.name as user_name 
-         FROM poll_votes pv 
-         LEFT JOIN users u ON u.id = pv.user_id 
-         WHERE pv.poll_id = ?`,
-        [poll.id]
-      );
+    if (polls.length === 0) return res.json([]);
 
-      // Get creator name
-      const creator = await query('SELECT name FROM users WHERE id = ?', [poll.created_by]);
+    const pollIds = polls.map(p => p.id);
+    const placeholders = pollIds.map(() => '?').join(',');
 
-      const optionsWithVotes = options.map(opt => ({
+    const options = await query(`SELECT * FROM poll_options WHERE poll_id IN (${placeholders}) ORDER BY id ASC`, pollIds);
+    const votes = await query(
+      `SELECT pv.*, u.name as user_name 
+       FROM poll_votes pv 
+       LEFT JOIN users u ON u.id = pv.user_id 
+       WHERE pv.poll_id IN (${placeholders})`,
+      pollIds
+    );
+
+    const enriched = polls.map(poll => {
+      const pollVotes = votes.filter(v => v.poll_id === poll.id);
+      const pollOptions = options.filter(o => o.poll_id === poll.id).map(opt => ({
         ...opt,
-        votes: votes.filter(v => v.option_id === opt.id),
-        vote_count: votes.filter(v => v.option_id === opt.id).length,
+        votes: pollVotes.filter(v => v.option_id === opt.id),
+        vote_count: pollVotes.filter(v => v.option_id === opt.id).length,
       }));
 
       return {
         ...poll,
-        creator_name: creator[0]?.name || 'Unknown',
-        options: optionsWithVotes,
-        total_votes: votes.length,
-        user_vote: votes.find(v => v.user_id === req.userId)?.option_id || null,
+        creator_name: poll.creator_name || 'Unknown',
+        options: pollOptions,
+        total_votes: pollVotes.length,
+        user_vote: pollVotes.find(v => v.user_id === req.userId)?.option_id || null,
       };
-    }));
+    });
 
     res.json(enriched);
   } catch (error) {

@@ -274,6 +274,26 @@ export async function createTables() {
         }
       }
     }
+
+  // Create Indexes
+  const indexQueries = [
+    `CREATE INDEX IF NOT EXISTS idx_messages_trip_id ON messages(trip_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_expenses_trip_id ON expenses(trip_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_poll_votes_poll_id ON poll_votes(poll_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_poll_options_poll_id ON poll_options(poll_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_todo_items_trip_id ON todo_items(trip_id)`,
+    `CREATE INDEX IF NOT EXISTS idx_trip_photos_trip_id ON trip_photos(trip_id)`
+  ];
+
+  for (const query of indexQueries) {
+    try {
+      await pool.query(query);
+    } catch (error) {
+      if (!error.message.includes('already exists')) {
+        console.error('Error creating index:', error.message);
+      }
+    }
+  }
 }
 
 export async function runMigrations() {
