@@ -15,6 +15,8 @@ import documentsRoutes from './routes/documents.js';
 import communityRoutes from './routes/community.js';
 import todosRoutes from './routes/todos.js';
 import participantsRoutes from './routes/participants.js';
+import pollsRoutes from './routes/polls.js';
+import photosRoutes from './routes/photos.js';
 import { initMailer } from './config/mailConfig.js';
 
 const app = express();
@@ -67,6 +69,8 @@ app.use('/api/trips/:tripId/messages', messagesRoutes);
 app.use('/api/trips/:tripId/documents', documentsRoutes);
 app.use('/api/trips/:tripId/todos', todosRoutes);
 app.use('/api/trips/:tripId/participants', participantsRoutes);
+app.use('/api/trips/:tripId/polls', pollsRoutes);
+app.use('/api/trips/:tripId/photos', photosRoutes);
 
 // Root level routes for non-nested resources
 app.use('/api/members', membersRoutes);

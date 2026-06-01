@@ -14,6 +14,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useTranslation } from '@/lib/LanguageContext';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import TodoList from '@/components/trip/TodoList';
+import PollSection from '@/components/trip/PollSection';
 
 export default function TripMembers() {
   const { tripId } = useParams();
@@ -120,6 +121,7 @@ export default function TripMembers() {
           <TabsTrigger value="members" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('members.title')}</TabsTrigger>
           <TabsTrigger value="todo" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('members.todoTab')}</TabsTrigger>
           <TabsTrigger value="shopping" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('members.shoppingTab')}</TabsTrigger>
+          <TabsTrigger value="polls" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate max-w-[120px] sm:max-w-none">{t('polls.title') || 'Sondages'}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="members" className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-0">
@@ -218,6 +220,10 @@ export default function TripMembers() {
 
         <TabsContent value="shopping" className="mt-0 max-w-3xl">
           <TodoList tripId={tripId} title={t('members.shoppingList')} type="shopping" />
+        </TabsContent>
+
+        <TabsContent value="polls" className="mt-0 max-w-4xl">
+          <PollSection tripId={tripId} />
         </TabsContent>
       </Tabs>
     </div>

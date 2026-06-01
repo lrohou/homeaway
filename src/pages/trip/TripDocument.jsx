@@ -18,6 +18,8 @@ import { fr, enUS } from "date-fns/locale";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useTranslation } from "@/lib/LanguageContext";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import PhotoGallery from "@/components/trip/PhotoGallery";
 
 const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
@@ -84,15 +86,25 @@ export default function TripDocuments() {
     <div>
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <h2 className="text-3xl font-bold">{t('documents.title')}</h2>
-        <Button
-          size="sm"
-          className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full w-full sm:w-auto h-11 sm:h-9 shadow-md"
-          onClick={() => setShowAdd(true)}
-        >
-          <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
-          {t('expenses.add') || 'Ajouter'}
-        </Button>
       </div>
+
+      <Tabs defaultValue="documents" className="w-full">
+        <TabsList className="mb-6 bg-muted/50 p-1 flex flex-wrap gap-1 h-auto w-fit">
+          <TabsTrigger value="documents" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate">{t('documents.title')}</TabsTrigger>
+          <TabsTrigger value="photos" className="px-3 sm:px-6 rounded-md font-medium text-sm truncate">{t('photos.title') || 'Photos'}</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="documents" className="mt-0">
+          <div className="flex justify-end mb-4">
+            <Button
+              size="sm"
+              className="gap-2 bg-accent text-accent-foreground hover:bg-accent/90 rounded-full w-full sm:w-auto h-11 sm:h-9 shadow-md"
+              onClick={() => setShowAdd(true)}
+            >
+              <Plus className="w-5 h-5 sm:w-4 sm:h-4" />
+              {t('expenses.add') || 'Ajouter'}
+            </Button>
+          </div>
 
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -211,6 +223,12 @@ export default function TripDocuments() {
           </form>
         </DialogContent>
       </Dialog>
+        </TabsContent>
+        
+        <TabsContent value="photos" className="mt-0">
+          <PhotoGallery tripId={tripId} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

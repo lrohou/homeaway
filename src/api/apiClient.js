@@ -111,10 +111,7 @@ export const api = {
     cancelInvitation: async (tripId, invitationId) => apiCall(`/trips/${tripId}/members/invitations/${invitationId}`, { method: 'DELETE' }),
     remove: async (tripId, memberId) => apiCall(`/trips/${tripId}/members/${memberId}`, { method: 'DELETE' }),
   },
-  messages: {
-    list: async (tripId) => apiCall(`/trips/${tripId}/messages`, { method: 'GET' }),
-    send: async (tripId, data) => apiCall(`/trips/${tripId}/messages`, { method: 'POST', body: JSON.stringify(data) }),
-  },
+  // This is duplicate of lines 157-161, removing it here
   documents: {
     list: async (tripId) => apiCall(`/trips/${tripId}/documents`, { method: 'GET' }),
     upload: async (tripId, formData) => {
@@ -156,7 +153,50 @@ export const api = {
   },
   messages: {
     list: async (tripId) => apiCall(`/trips/${tripId}/messages`, { method: 'GET' }),
-    send: async (tripId, data) => apiCall(`/trips/${tripId}/messages`, { method: 'POST', body: JSON.stringify(data) }),
+    send: async (tripId, data) => {
+      if (data instanceof FormData) {
+        const url = `${API_URL}/trips/${tripId}/messages`;
+        const token = localStorage.getItem('authToken');
+        const headers = {};
+        if (token) headers.Authorization = `Bearer ${token}`;
+        const response = await fetch(url, { method: 'POST', body: data, headers });
+        if (response.status === 401) {
+          localStorage.removeItem('authToken');
+          window.location.href = '/login';
+          throw new Error('Session expirée. Veuillez vous reconnecter.');
+        }
+        const resData = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(resData.error || `API Error: ${response.status}`);
+        return resData;
+      }
+      return apiCall(`/trips/${tripId}/messages`, { method: 'POST', body: JSON.stringify(data) });
+    },
     delete: async (tripId, msgId) => apiCall(`/trips/${tripId}/messages/${msgId}`, { method: 'DELETE' }),
+  },
+  polls: {
+    list: async (tripId) => apiCall(`/trips/${tripId}/polls`, { method: 'GET' }),
+    create: async (tripId, data) => apiCall(`/trips/${tripId}/polls`, { method: 'POST', body: JSON.stringify(data) }),
+    vote: async (tripId, pollId, option_id) => apiCall(`/trips/${tripId}/polls/${pollId}/vote`, { method: 'POST', body: JSON.stringify({ option_id }) }),
+    unvote: async (tripId, pollId) => apiCall(`/trips/${tripId}/polls/${pollId}/vote`, { method: 'DELETE' }),
+    delete: async (tripId, pollId) => apiCall(`/trips/${tripId}/polls/${pollId}`, { method: 'DELETE' }),
+  },
+  photos: {
+    list: async (tripId) => apiCall(`/trips/${tripId}/photos`, { method: 'GET' }),
+    upload: async (tripId, formData) => {
+      const url = `${API_URL}/trips/${tripId}/photos`;
+      const token = localStorage.getItem('authToken');
+      const headers = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(url, { method: 'POST', body: formData, headers });
+      if (response.status === 401) {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+        throw new Error('Session expirée. Veuillez vous reconnecter.');
+      }
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || `API Error: ${response.status}`);
+      return data;
+    },
+    delete: async (tripId, photoId) => apiCall(`/trips/${tripId}/photos/${photoId}`, { method: 'DELETE' }),
   },
 };

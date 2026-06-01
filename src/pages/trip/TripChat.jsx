@@ -7,10 +7,13 @@ import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Send, MessageCircle, Maximize2, Minimize2, X, Trash2 } from 'lucide-react';
+import { Send, MessageCircle, Maximize2, Minimize2, X, Trash2, Image as ImageIcon, Download } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
+import { motion, AnimatePresence } from 'framer-motion';
+
+const BACKEND_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
 export default function TripChat() {
   const { tripId } = useParams();
@@ -18,8 +21,12 @@ export default function TripChat() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [messageText, setMessageText] = useState('');
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState(null);
   const messagesEndRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', tripId],
@@ -32,10 +39,12 @@ export default function TripChat() {
   });
 
   const createMessageMutation = useMutation({
-    mutationFn: (text) => api.messages.send(tripId, { text }),
+    mutationFn: (data) => api.messages.send(tripId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['messages', tripId] });
       setMessageText('');
+      setImageFile(null);
+      setImagePreview(null);
     }
   });
 
@@ -73,7 +82,51 @@ export default function TripChat() {
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (messageText.trim()) createMessageMutation.mutate(messageText);
+    if (!messageText.trim() && !imageFile) return;
+
+    if (imageFile) {
+      const formData = new FormData();
+      formData.append('image', imageFile);
+      if (messageText.trim()) formData.append('text', messageText);
+      createMessageMutation.mutate(formData);
+    } else {
+      createMessageMutation.mutate({ text: messageText });
+    }
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({ title: "Fichier trop volumineux", description: "L'image ne doit pas dépasser 10 Mo.", variant: "destructive" });
+        return;
+      }
+      setImageFile(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const clearImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const handleDownload = async (url, filename) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = filename || 'photo.jpg';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      window.open(url, '_blank');
+    }
   };
 
   const getMember = (userId) => members.find(m => m.user_id === userId) || members.find(m => m.id === userId);
@@ -144,11 +197,53 @@ export default function TripChat() {
             {renderMessages()}
           </div>
 
-          <div className="border-t p-4 bg-card">
+          <div className="border-t p-4 bg-card shrink-0">
             {renderInput()}
           </div>
         </Card>
       )}
+
+      {/* Lightbox for Chat Images */}
+      <AnimatePresence>
+        {lightboxImage && (
+          <motion.div 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[10000] bg-black/90 backdrop-blur-sm flex flex-col"
+            onClick={() => setLightboxImage(null)}
+          >
+            <div className="flex justify-end p-4 text-white z-10 bg-gradient-to-b from-black/60 to-transparent">
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="text-white hover:bg-white/20"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleDownload(lightboxImage, 'chat-photo.jpg');
+                  }}
+                >
+                  <Download className="w-5 h-5" />
+                </Button>
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/20" onClick={() => setLightboxImage(null)}>
+                  <X className="w-6 h-6" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex-1 relative flex items-center justify-center p-4 md:p-8" onClick={(e) => e.stopPropagation()}>
+              <motion.img 
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                src={lightboxImage} 
+                alt="Enlarged chat view" 
+                className="max-w-full max-h-full object-contain rounded-md shadow-2xl"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 
@@ -194,15 +289,39 @@ export default function TripChat() {
                   )}
 
                   <div className={cn(
-                    "px-4 py-2.5 rounded-2xl text-sm shadow-sm",
+                    "px-4 py-2.5 rounded-2xl text-sm shadow-sm flex flex-col gap-2",
                     isOwn
                       ? 'bg-primary text-primary-foreground rounded-tr-none'
                       : 'bg-white border text-secondary-foreground rounded-tl-none'
                   )}>
+                    {msg.image_url && (
+                      <div className="relative group/img -mx-2 -mt-1 mb-1">
+                        <img 
+                          src={`${BACKEND_URL}${msg.image_url}`} 
+                          alt="Attachment" 
+                          className="max-w-[200px] sm:max-w-[250px] max-h-[300px] rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                          onClick={() => setLightboxImage(`${BACKEND_URL}${msg.image_url}`)}
+                          loading="lazy"
+                        />
+                        <Button 
+                          size="icon" 
+                          variant="secondary" 
+                          className="absolute bottom-2 right-2 w-8 h-8 opacity-0 group-hover/img:opacity-100 transition-opacity bg-black/50 text-white hover:bg-black/70"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(`${BACKEND_URL}${msg.image_url}`, `chat-img-${msg.id}.jpg`);
+                          }}
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                     {/* Long message wrapping with max height + scroll */}
-                    <p className="whitespace-pre-wrap break-words max-w-[calc(60vw)] sm:max-w-xs max-h-48 overflow-y-auto leading-relaxed">
-                      {msg.content || msg.text}
-                    </p>
+                    {(msg.content || msg.text) && (
+                      <p className="whitespace-pre-wrap break-words max-w-[calc(60vw)] sm:max-w-xs max-h-48 overflow-y-auto leading-relaxed">
+                        {msg.content || msg.text}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -216,19 +335,48 @@ export default function TripChat() {
 
   function renderInput() {
     return (
-      <form onSubmit={handleSendMessage} className="flex gap-2">
-        <Input
-          type="text"
-          placeholder="Écrivez votre message..."
-          value={messageText}
-          onChange={(e) => setMessageText(e.target.value)}
-          disabled={createMessageMutation.isPending}
-          className="flex-1"
-        />
-        <Button type="submit" size="icon" disabled={!messageText.trim() || createMessageMutation.isPending} className="shrink-0">
-          <Send className="w-4 h-4" />
-        </Button>
-      </form>
+      <div className="flex flex-col gap-2">
+        {imagePreview && (
+          <div className="relative w-fit">
+            <img src={imagePreview} alt="Preview" className="h-20 rounded-md border shadow-sm" />
+            <button 
+              onClick={clearImage}
+              className="absolute -top-2 -right-2 bg-destructive text-white rounded-full p-1 shadow-md hover:scale-110 transition-transform"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+        <form onSubmit={handleSendMessage} className="flex gap-2 items-center">
+          <Input
+            type="file"
+            accept="image/jpeg,image/png,image/gif,image/webp,image/heic"
+            className="hidden"
+            ref={fileInputRef}
+            onChange={handleImageSelect}
+          />
+          <Button 
+            type="button" 
+            variant="ghost" 
+            size="icon" 
+            className="shrink-0 text-muted-foreground hover:text-foreground"
+            onClick={() => fileInputRef.current?.click()}
+          >
+            <ImageIcon className="w-5 h-5" />
+          </Button>
+          <Input
+            type="text"
+            placeholder="Écrivez votre message..."
+            value={messageText}
+            onChange={(e) => setMessageText(e.target.value)}
+            disabled={createMessageMutation.isPending}
+            className="flex-1"
+          />
+          <Button type="submit" size="icon" disabled={(!messageText.trim() && !imageFile) || createMessageMutation.isPending} className="shrink-0 transition-transform active:scale-95">
+            <Send className="w-4 h-4" />
+          </Button>
+        </form>
+      </div>
     );
   }
 }
