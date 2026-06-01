@@ -1,6 +1,7 @@
 import express from 'express';
 import { query, run } from '../config/database.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { upload } from '../middleware/upload.js';
 
 const router = express.Router({ mergeParams: true });
 
@@ -9,7 +10,7 @@ router.get('/', authenticateToken, async (req, res) => {
   try {
     const { tripId } = req.params;
     const messages = await query(
-      'SELECT id, trip_id, user_id, text as content, created_date as created_at FROM messages WHERE trip_id = ? ORDER BY created_date ASC',
+      'SELECT id, trip_id, user_id, text as content, image_url, created_date as created_at FROM messages WHERE trip_id = ? ORDER BY created_date ASC',
       [tripId]
     );
     res.json(messages);
@@ -19,23 +20,24 @@ router.get('/', authenticateToken, async (req, res) => {
   }
 });
 
-// Send message
-router.post('/', authenticateToken, async (req, res) => {
+// Send message (text and/or image)
+router.post('/', authenticateToken, upload.single('image'), async (req, res) => {
   try {
     const { tripId } = req.params;
     const { text } = req.body;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
 
-    if (!text) {
-      return res.status(400).json({ error: 'Text is required' });
+    if (!text && !imageUrl) {
+      return res.status(400).json({ error: 'Text or image is required' });
     }
 
     const result = await run(
-      `INSERT INTO messages (trip_id, user_id, text, created_date)
-       VALUES (?, ?, ?, CURRENT_TIMESTAMP)`,
-      [tripId, req.userId, text]
+      `INSERT INTO messages (trip_id, user_id, text, image_url, created_date)
+       VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+      [tripId, req.userId, text || null, imageUrl]
     );
 
-    res.status(201).json({ id: result.lastID, message: 'Message sent' });
+    res.status(201).json({ id: result.lastID, message: 'Message sent', image_url: imageUrl });
   } catch (error) {
     console.error('Send message error:', error);
     res.status(500).json({ error: 'Failed to send message' });
@@ -57,3 +59,4 @@ router.delete('/:msgId', authenticateToken, async (req, res) => {
 });
 
 export default router;
+

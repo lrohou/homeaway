@@ -28,7 +28,18 @@ export default function TodoList({ tripId, title, type = 'general' }) {
 
   const updateMutation = useMutation({
     mutationFn: ({ id, is_done }) => api.todos.update(tripId, id, { is_done }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['todos', tripId, type] })
+    onMutate: async ({ id, is_done }) => {
+      await queryClient.cancelQueries({ queryKey: ['todos', tripId, type] });
+      const previous = queryClient.getQueryData(['todos', tripId, type]);
+      queryClient.setQueryData(['todos', tripId, type], (old) =>
+        (old || []).map(t => t.id === id ? { ...t, is_done } : t)
+      );
+      return { previous };
+    },
+    onError: (err, vars, context) => {
+      queryClient.setQueryData(['todos', tripId, type], context.previous);
+    },
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['todos', tripId, type] })
   });
 
   const deleteMutation = useMutation({
@@ -88,9 +99,9 @@ export default function TodoList({ tripId, title, type = 'general' }) {
                 }`}
               >
                 <Checkbox
-                  checked={todo.is_done === 1 || todo.is_done === true}
+                  checked={!!todo.is_done}
                   onCheckedChange={(checked) =>
-                    updateMutation.mutate({ id: todo.id, is_done: checked ? 1 : 0 })
+                    updateMutation.mutate({ id: todo.id, is_done: !!checked })
                   }
                   className="shrink-0"
                 />

@@ -232,6 +232,36 @@ export async function createTables() {
       user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       UNIQUE(shared_trip_id, user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS polls (
+      id SERIAL PRIMARY KEY,
+      trip_id INTEGER NOT NULL,
+      question TEXT NOT NULL,
+      description TEXT,
+      deadline TIMESTAMP,
+      created_by INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    )`,
+    `CREATE TABLE IF NOT EXISTS poll_options (
+      id SERIAL PRIMARY KEY,
+      poll_id INTEGER NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+      label TEXT NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS poll_votes (
+      id SERIAL PRIMARY KEY,
+      poll_id INTEGER NOT NULL REFERENCES polls(id) ON DELETE CASCADE,
+      option_id INTEGER NOT NULL REFERENCES poll_options(id) ON DELETE CASCADE,
+      user_id INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(poll_id, user_id)
+    )`,
+    `CREATE TABLE IF NOT EXISTS trip_photos (
+      id SERIAL PRIMARY KEY,
+      trip_id INTEGER NOT NULL,
+      file_url TEXT NOT NULL,
+      caption TEXT,
+      uploaded_by INTEGER NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )`
   ];
 
@@ -289,6 +319,19 @@ export async function runMigrations() {
         console.log(`🔄 Adding paid_by column to ${table}...`);
         await run(`ALTER TABLE ${table} ADD COLUMN paid_by INTEGER`);
       }
+    }
+
+    // 4. Add image_url column to messages if missing
+    const msgColCheck = await query(`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'messages' AND column_name = 'image_url'
+    `);
+    if (msgColCheck.length === 0) {
+      console.log('🔄 Adding image_url column to messages...');
+      await run(`ALTER TABLE messages ALTER COLUMN text DROP NOT NULL`);
+      await run(`ALTER TABLE messages ADD COLUMN image_url TEXT`);
+      console.log('✅ Added image_url to messages');
     }
   } catch (error) {
     console.error('❌ Migration error:', error.message);
